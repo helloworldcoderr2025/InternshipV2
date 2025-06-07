@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: internshipproject
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn Project.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: Project.settings
+      - key: PYTHON_VERSION
+        value: 3.12
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
