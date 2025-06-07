@@ -8,11 +8,7 @@ from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
 import pandas as pd
 import re
 import json
-<<<<<<< HEAD
 from .models import Student,Registrations,Company,AuthUser,Documents
-=======
-from .models import Student,Registrations,Company,AuthUser
->>>>>>> updated-version
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
@@ -20,7 +16,6 @@ from .models import Mails
 import csv
 import io
 import openpyxl
-<<<<<<< HEAD
 from django.utils.crypto import get_random_string
 from supabase import create_client
 import urllib.parse
@@ -32,8 +27,6 @@ def extract_relative_path(full_url):
     if len(path_parts) == 2:
         return path_parts[1]
     return None
-=======
->>>>>>> updated-version
 
 # Homepage view
 def home_page_view(request):
@@ -731,11 +724,7 @@ def index(request):
                     for reg in register:
                         print(4)
                         # print(reg.student)
-<<<<<<< HEAD
                         company=Company.objects.get(company_id=reg.company_id)
-=======
-                        company=Company.objects.get(tbl_id=reg.company_id)
->>>>>>> updated-version
                         level = levelId.get(reg.level, 0)
                         print("reg.level",reg.level)
                         ob={"companyName":company.name,"status":reg.status,"level":level}
@@ -772,13 +761,10 @@ def register(request):
         placed=request.POST['placed']
         linkedin=request.POST['linkedin']
         willing=request.POST['willing']
-<<<<<<< HEAD
         profilepic=request.FILES.get('profilepic')
         results=request.FILES.get('results')
         scorecard=request.FILES.get('scorecard')
         print(profilepic)
-=======
->>>>>>> updated-version
         # print(name,rollNum,dept,year,email,passwd1,interest,willing,mobile,cgpa,gate,backlogs,placed,linkedin)
         if len(rollNum) != 6:
             messages.info(request, "Enter a Valid Roll Number Given by Institute")
@@ -880,7 +866,6 @@ def register(request):
                 'willing': willing,
                 'gate':gate
             })
-<<<<<<< HEAD
         if not (profilepic ):
             print("error")
             messages.info(request,"Error in File Upload")
@@ -933,21 +918,14 @@ def register(request):
                 'status': 'error'
             })
 
-=======
->>>>>>> updated-version
 
         dept=branches[int(rollNum)//100000]
         student=Student.objects.create(name=name,roll_no=rollNum,branch=dept,registered=willing,
                                        job_type=interest,email=email,academic_year=year,password=passwd1,
-<<<<<<< HEAD
                                        gate_rank=gate,mobile=mobile,cgpa=cgpa,placed=placed,backlogs=backlogs,linkedin=linkedin,profilepic=public_url)
         student.save()
         docs=Documents.objects.create(rollno=rollNum,results=results_url,scorecard=gate_url)
         docs.save()
-=======
-                                       gate_rank=gate,mobile=mobile,cgpa=cgpa,placed=placed,backlogs=backlogs,linkedin=linkedin)
-        student.save()
->>>>>>> updated-version
         user=User.objects.create_user(password=passwd1,username=rollNum+"@student.nitandhra.ac.in",first_name=name,email=email)
         user.save()
         return redirect("login")
@@ -974,7 +952,6 @@ def logout(request):
     return redirect("/")
 
 def profile(request):
-<<<<<<< HEAD
     send=[]
     roll=request.user.username.split("@")[0]
     student=Student.objects.get(roll_no=roll)
@@ -990,36 +967,6 @@ def profile(request):
     # docs=Documents.objects.get(rollno=roll)
     # print(docs.results)
     return render(request,"profile.html",{'student':student,'send':send})
-=======
-    send = []
-    roll = request.user.username.split("@")[0]
-    print(roll)
-
-    try:
-        student = Student.objects.get(roll_no=roll)
-    except Student.DoesNotExist:
-        return HttpResponse("Student not found")
-
-    if student.registered == "Yes":
-        try: 
-            registrations = Registrations.objects.filter(rollnumber=roll)
-            for reg in registrations:
-                try:
-                    company = Company.objects.get(company_id=reg.company_id)
-                    ob = {
-                        "companyName": company.name,
-                        "level": levelId.get(reg.level, reg.level), 
-                        "status": reg.status
-                    }
-                    send.append(ob)
-                except Company.DoesNotExist:
-                    print(f"Company not found for ID: {reg.company_id}")
-        except Exception as e:
-            print("Error fetching registrations:", e)
-
-    return render(request, "profile.html", {'student': student, 'send': send})
-
->>>>>>> updated-version
 
 def tplogin(request):
     if request.method=="POST":
@@ -1052,35 +999,23 @@ def verifystudents(request):
                     students = Student.objects.filter(branch=branch,verified="No")
                     return render(request, "verifystudents.html", {'students': students})
                 except Exception as e:
-<<<<<<< HEAD
                     print(e)
-=======
->>>>>>> updated-version
                     messages.info(request,"All Students from this Branch are Verified.")
                     return render(request,"verifystudents.html")
             elif branch=="nil" and roll!="":#through rollno
                 try :
                     student = Student.objects.get(roll_no=roll)
-<<<<<<< HEAD
                     docs=Documents.objects.get(rollno=request.POST['rollNumber'])
                     return render(request, "verifystudents.html", {'student': student,'data':1,'docs':docs})
                 except Exception as e:
                     print(e)
-=======
-                    return render(request, "verifystudents.html", {'student': student,'data':1})
-                except Exception as e:
->>>>>>> updated-version
                     messages.info(request,"Enter Valid Credentials")
                     return render(request,"verifystudents.html")
             elif branch!="nil" and roll!="":#through both
                 try :
                     student = Student.objects.get(roll_no=roll,branch=branch)
-<<<<<<< HEAD
                     docs=Documents.objects.get(rollno=request.POST['rollNumber'])
                     return render(request, "verifystudents.html", {'student': student,'data':1,'docs':docs})
-=======
-                    return render(request, "verifystudents.html", {'student': student,'data':1})
->>>>>>> updated-version
                 except Exception as e:
                     messages.info(request,"Enter Valid Credentials")
                     return render(request,"verifystudents.html")
@@ -1089,12 +1024,8 @@ def verifystudents(request):
                 return render(request,"verifystudents.html")
         elif 'rollNumber' in request.POST:
             student = Student.objects.get(roll_no=request.POST['rollNumber'])
-<<<<<<< HEAD
             docs=Documents.objects.get(rollno=request.POST['rollNumber'])
             return render(request, "verifystudents.html", {'student': student,'data':1,'docs':docs})
-=======
-            return render(request, "verifystudents.html", {'student': student,'data':1})
->>>>>>> updated-version
         else:
             rollno = request.POST['rollno']
             cgpa = request.POST['cgpa']
@@ -1108,7 +1039,6 @@ def verifystudents(request):
             student.remarks = mssg
             if verify == "Yes":
                 student.verified = "Yes"
-<<<<<<< HEAD
                 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
                 docs = Documents.objects.get(rollno=rollno)
 
@@ -1139,8 +1069,6 @@ def verifystudents(request):
                     docs.delete()
                     print(f"Documents row for rollno {rollno} deleted.")
 
-=======
->>>>>>> updated-version
             student.save()
             return redirect("tpportal")
                 
@@ -1159,11 +1087,7 @@ def displayStatus(request,reg,roll):
                     #     company=Company.objects.get(tbl_id=request.company_id)
                     #     ob={"companyName":company.name,"level":levelId[reg.level],"status":reg.status}
                     #     send.append(ob)
-<<<<<<< HEAD
                     company=Company.objects.get(company_id=register.company_id)
-=======
-                    company=Company.objects.get(tbl_id=register.company_id)
->>>>>>> updated-version
                     ob={"companyName":company.name,"level":levelId[register.level],"status":register.status}
                     send.append(ob)
                 except Exception as e:
@@ -1340,10 +1264,7 @@ def stats(request):
     register=Registrations.objects.filter(rollnumber=roll)
     cv,apt,gd,ct,ti,hr,acc,rej=0,0,0,0,0,0,0,0
     app=register.count()
-<<<<<<< HEAD
     companies=[]
-=======
->>>>>>> updated-version
     for reg in register:
         print("level",reg.level)
         if levelId[reg.level]>=2:
@@ -1362,7 +1283,6 @@ def stats(request):
             acc=acc+1
         if reg.status=="Rejected":
             rej=rej+1
-<<<<<<< HEAD
         if reg.status!="Accepted" and reg.status!="Rejected":
             comp=Company.objects.get(company_id=reg.company_id)
             companies.append(comp)
@@ -1398,9 +1318,3 @@ def editprofile(request):
 
     else:
         return render(request,"editprofile.html")
-=======
-    percent=((app-acc-rej)/app)*100
-    student={"Applied":app,"cv":cv,"apt":apt,"gd":gd,"ct":ct,"ti":ti,"hr":hr,"acc":acc,"rej":rej,"percent":percent}
-    print(student)
-    return render(request,"stats.html",{"student":student})
->>>>>>> updated-version

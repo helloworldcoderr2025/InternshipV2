@@ -21,8 +21,5 @@ from django.urls import path,include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('',include('MainInterface.urls')),
-<<<<<<< HEAD
-=======
     path('',include('CompanySide.urls')),
->>>>>>> updated-version
 ]

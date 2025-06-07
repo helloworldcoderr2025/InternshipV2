@@ -11,11 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-<<<<<<< HEAD
 from supabase import create_client
-=======
-
->>>>>>> updated-version
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,10 +38,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "MainInterface",
-<<<<<<< HEAD
-=======
-    "CompanySide",
->>>>>>> updated-version
 ]
 
 MIDDLEWARE = [
@@ -94,12 +86,6 @@ DATABASES = {
 }
 
 
-<<<<<<< HEAD
-=======
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
->>>>>>> updated-version
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -151,9 +137,6 @@ EMAIL_HOST_USER = 'temporaryu223@gmail.com'
 EMAIL_HOST_PASSWORD = 'sroq afba pxll ilxv'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-<<<<<<< HEAD
 SUPABASE_URL = 'https://bzdozjdbyovuahcgvyhb.supabase.co'
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZG96amRieW92dWFoY2d2eWhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzI0MjUwMSwiZXhwIjoyMDYyODE4NTAxfQ.ujblBvG206S4Xqure2ClCPZPJomHv9OUOCpEtYp-70E"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-=======
->>>>>>> updated-version
