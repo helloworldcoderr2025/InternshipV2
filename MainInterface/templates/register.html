@@ -18,7 +18,11 @@
     </h1>
     <h2 style="text-align: center">Placement Portal</h2>
     <h3 style="text-align: center">Registration Form</h3>
+<<<<<<< HEAD
     <form action="register" enctype="multipart/form-data" method="POST" style="padding: 2%">
+=======
+    <form action="register" method="POST" style="padding: 2%">
+>>>>>>> updated-version
       {%for mssg in messages %}
       <h6 style="color: red">{{mssg}}</h6>
       {%endfor%} {%csrf_token%}
@@ -170,6 +174,21 @@
         </select>
 
       </div>
+<<<<<<< HEAD
+=======
+      <!-- <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          value="Yes"
+          id="flexCheckDefault"
+          name="willing"
+        />
+        <label class="form-check-label" for="flexCheckDefault">
+          Are You Willing to Participate in Campus Drive conducted by the NITAP
+        </label>
+      </div> -->
+>>>>>>> updated-version
       <!-- LinkedIn -->
       <div class="mb-3">
         <label class="form-label">LinkedIn Profile Link</label>
@@ -190,6 +209,7 @@
           of NIT AP T&P Cell</label
         >
       </div>
+<<<<<<< HEAD
       <!-- Upload section -->
        <div class="mb-3">
        <label >Upload Your Passport Size Image</label>
@@ -199,6 +219,8 @@
        <label >Upload Your Gate Score Card(if You applied)</label>
        <input type="file" name="scorecard" >
        </div>
+=======
+>>>>>>> updated-version
       <!-- Submit button -->
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>

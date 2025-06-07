@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>T&P Dashboard</title>
+</head>
+<body>
+
+  <h1>Training & Placement Dashboard</h1>
+
+  <nav>
+    <ul>
+      <li><a href="#">Dashboard</a></li>
+      <li><a href="{% url  'upload_company_details' %}">Upload Company</a></li>
+      <li><a href="{% url  'check_company_invite_status' %}">Manage Invitations</a></li>
+    </ul>
+  </nav>
+
+
+</body>
+</html>
