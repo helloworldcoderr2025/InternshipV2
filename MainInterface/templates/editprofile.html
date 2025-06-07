@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <h1 style="text-align: center">
+      National Institute of Technology, Andhra Pradesh
+    </h1>
+    <h2 style="text-align: center">Placement Portal</h2>
+    <h3 style="text-align: center">Update Student Details </h3>
+    <form action="editprofile" enctype="multipart/form-data" method="POST" style="padding: 2%">
+      {%for mssg in messages %}
+      <h6 style="color: red">{{mssg}}</h6>
+      {%endfor%} {%csrf_token%}
+      <!-- Name -->
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Full Name</label>
+        <input required type="text" class="form-control" id="name" name="name"
+        value="{{ name|default:'' }}" aria-describedby="emailHelp" />
+      </div>
+      <!-- Willing -->
+      <div class="input-group mb-3">
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Are you Willing to Participate in Campus Drive
+        </label>
+        <select
+          required
+          class="form-select"
+          id="inputGroupSelect01"
+          name="willing"
+        >
+        <option value="" {% if willing|default:'' == "" %}selected{% endif %}>Choose...</option>
+        <option value="Yes" {% if willing|default:'' == "Yes" %}selected{% endif %}>Yes</option>
+        <option value="No" {% if willing|default:'' == "No" %}selected{% endif %}>No</option>
+      </select>
+
+      </div>
+      <!-- Year of passing -->
+      <div class="input-group mb-3">
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Year of Passing</label
+        >
+        <select
+          required
+          class="form-select"
+          id="inputGroupSelect01"
+          name="year"
+        >
+          <option value="" disabled {% if not year %}selected{% endif %}>Choose...</option>
+          <option value="2023-2024" {% if year == "2023-2024" %}selected{% endif %}>2023-24</option>
+          <option value="2024-2025" {% if year == "2024-2025" %}selected{% endif %}>2024-25</option>
+          <option value="2025-2026" {% if year == "2025-2026" %}selected{% endif %}>2025-26</option>
+          <option value="2026-2027" {% if year == "2026-2027" %}selected{% endif %}>2026-27</option>
+          <option value="2027-2028" {% if year == "2027-2028" %}selected{% endif %}>2027-28</option>
+          <option value="2028-2029" {% if year == "2028-2029" %}selected{% endif %}>2028-29</option>
+        </select>
+
+      </div>
+      <!-- Secondary Email -->
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email address</label>
+        <input
+        value="{{ email|default:'' }}"
+          required
+          type="email"
+          class="form-control"
+          name="email"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+        />
+        <div id="emailHelp" class="form-text">Use Personal E-mail Id only</div>
+      </div>
+      <!-- mobile number -->
+      <div class="mb-3">
+
+        <label class="form-label" maxlength="10">Mobile Number</label>
+        <input value="{{ mobileNo|default:'' }}" required type="tel" class="form-control" name="mobileNo" />
+      </div>
+      <!-- CGPA -->
+      <div class="mb-3">
+        <label class="form-label" maxlength="10">Current CGPA</label>
+        <input required value="{{ cgpa|default:'' }}" type="text" class="form-control" name="cgpa" />
+      </div>
+      <!-- Gate Rank -->
+      <div class="mb-3">
+        <label class="form-label">Gate Rank (if you have applied)</label>
+        <input type="text" value="{{ gate|default:'' }}" class="form-control" name="gate" />
+      </div>
+      <!-- Backlogs -->
+      <div class="mb-3">
+        <label class="form-label">Number of active Backlogs(if you have)</label>
+        <input required type="text" value="{{ backlogs|default:'' }}" class="form-control" name="backlogs" />
+      </div>
+      <!-- Feild of Interest -->
+      <div class="input-group mb-3">
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Feild of Interest</label
+        >
+        <select
+          required
+          class="form-select"
+          id="inputGroupSelect01"
+          name="job_interest_type"
+        >
+          <option value="" {% if job_interest_type == "" %}selected{% endif %}>Choose...</option>
+          <option value="IT" {% if job_interest_type == "IT" %}selected{% endif %}>IT</option>
+          <option value="R&D" {% if job_interest_type == "R&D" %}selected{% endif %}>R&D</option>
+          <option value="Core" {% if job_interest_type == "Core" %}selected{% endif %}>Core</option>
+          <option value="IT+R&D" {% if job_interest_type == "IT+R&D" %}selected{% endif %}>IT and R&D</option>
+          <option value="IT+Core" {% if job_interest_type == "IT+Core" %}selected{% endif %}>IT and Core</option>
+          <option value="R&D+Core" {% if job_interest_type == "R&D+Core" %}selected{% endif %}>R&D and Core</option>
+          <option value="IT+R&D+Core" {% if job_interest_type == "IT+R&D+Core" %}selected{% endif %}>IT, R&D, Core</option>
+          <option value="Higher Studies" {% if job_interest_type == "Higher Studies" %}selected{% endif %}>Higher Studies</option>
+        </select>
+
+      </div>
+      <!-- Placed -->
+      <div class="input-group mb-3">
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Have You Participated in off-Campus Placement drive and Placed in any
+          Company
+        </label>
+        <select
+          required
+          class="form-select"
+          id="inputGroupSelect01"
+          name="placed"
+        >
+          <option value="" {% if placed|default:'' == "" %}selected{% endif %}>Choose...</option>
+          <option value="Yes" {% if placed|default:'' == "Yes" %}selected{% endif %}>Yes</option>
+          <option value="No" {% if placed|default:'' == "No" %}selected{% endif %}>No</option>
+        </select>
+
+      </div>
+      <!-- LinkedIn -->
+      <div class="mb-3">
+        <label class="form-label">LinkedIn Profile Link</label>
+        <input required type="text"value="{{ linkedin|default:'' }}" class="form-control" name="linkedin" />
+      </div>
+      <!-- Rule Check -->
+      <div class="mb-3 form-check">
+        <input
+          required
+          type="checkbox"
+          class="form-check-input"
+          id="exampleCheck1"
+        />
+        <label class="form-check-label" for="exampleCheck1"
+          >I have read and I will abide by the
+          <a href="{% static 'documents/Rules.pdf' %}">Rules</a>
+
+          of NIT AP T&P Cell</label
+        >
+      </div>
+      <!-- Upload section -->
+       <!-- <div class="mb-3">
+       <label >Upload Your Passport Size Image</label>
+       <input type="file" name="profilepic" required><br>
+       <label >Upload Your Grade Sheet</label>
+       <input type="file" name="results" required><br>
+       <label >Upload Your Gate Score Card(if You applied)</label>
+       <input type="file" name="scorecard" >
+       </div> -->
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
