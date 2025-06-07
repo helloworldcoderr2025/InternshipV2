@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invite Status</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+
+  <h2>📊 Company Invite Status</h2>
+
+  <label for="companySelect">🔍 Search & Select Companies:</label>
+  <select id="companySelect" multiple="multiple" style="width: 400px;">
+    {% for company in companies %}
+      <option value="{{ company.company_id }}">{{ company.name }}</option>
+    {% endfor %}
+  </select>
+
+  <div id="inviteResults"></div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="{% static 'js/Invitation_Status.js' %}"></script>
+
+</body>
+</html>

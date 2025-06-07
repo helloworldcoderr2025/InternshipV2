@@ -1,10 +1,3 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
 
@@ -77,6 +70,34 @@ class AuthUserUserPermissions(models.Model):
         unique_together = (('user', 'permission'),)
 
 
+class Company(models.Model):
+    company_id = models.TextField(primary_key=True)
+    name = models.TextField(blank=True, null=True)
+    type_of_company = models.TextField(blank=True, null=True)
+    eligible_core_branch = models.TextField(blank=True, null=True)
+    type_of_job = models.TextField(blank=True, null=True)
+    job_profile = models.TextField(blank=True, null=True)
+    job_offer = models.TextField(blank=True, null=True)
+    max_package_offered = models.TextField(blank=True, null=True)
+    eligible_passouts = models.TextField(blank=True, null=True)
+    hr_contact_details = models.TextField(blank=True, null=True)
+    google_form_link = models.TextField(blank=True, null=True)
+    brochure_path = models.TextField(blank=True, null=True)
+    eligible_non_core_branch = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'company'
+
+
+class CompanyInvitations(models.Model):
+    company = models.OneToOneField(Company, models.DO_NOTHING, primary_key=True)  # The composite primary key (company_id, invited_date) found, that is not supported. The first column is selected.
+    invited_date = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'company_invitations'
+        unique_together = (('company', 'invited_date'),)
 
 
 class CseDepartment(models.Model):
@@ -136,6 +157,27 @@ class DjangoSession(models.Model):
         db_table = 'django_session'
 
 
+class Documents(models.Model):
+    rollno = models.BigAutoField(primary_key=True)
+    results = models.TextField()
+    scorecard = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'documents'
+
+
+class Mails(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    created_at = models.DateTimeField()
+    roll_no = models.TextField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'mails'
+
+
 class MmeDepartment(models.Model):
     roll_no = models.TextField(blank=True, null=True)
     name = models.TextField(blank=True, null=True)
@@ -164,7 +206,7 @@ class Placements(models.Model):
 
 
 class Registrations(models.Model):
-    registered_id = models.TextField(blank=True,primary_key=True)
+    registered_id = models.TextField(primary_key=True)
     rollnumber = models.TextField(blank=True, null=True)
     company_id = models.TextField(blank=True, null=True)
     level = models.TextField(blank=True, null=True)
@@ -173,6 +215,7 @@ class Registrations(models.Model):
     class Meta:
         managed = False
         db_table = 'registrations'
+
 
 class Student(models.Model):
     roll_no = models.TextField(primary_key=True)
@@ -191,49 +234,9 @@ class Student(models.Model):
     linkedin = models.TextField(blank=True, null=True)
     verified = models.TextField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    profilepic = models.TextField(db_column='profilePic', blank=True, null=True)  # Field name made lowercase.
+    updated_at = models.DateTimeField(blank=True, null=True)
+    profilepic = models.TextField(db_column='profilePic', blank=True, null=True)  # Field name made lowercase.  
 
     class Meta:
         managed = False
         db_table = 'student'
-
-
-class Company(models.Model):
-    company_id = models.TextField(primary_key=True)
-    name = models.TextField(blank=True, null=True)
-    type_of_company = models.TextField(blank=True, null=True)
-    eligible_core_branch = models.TextField(blank=True, null=True)
-    type_of_job = models.TextField(blank=True, null=True)
-    job_profile = models.TextField(blank=True, null=True)
-    job_offer = models.TextField(blank=True, null=True)
-    max_package_offered = models.TextField(blank=True, null=True)
-    eligible_passouts = models.TextField(blank=True, null=True)
-    hr_contact_details = models.TextField(blank=True, null=True)
-    google_form_link = models.TextField(blank=True, null=True)
-    brochure_path = models.TextField(blank=True, null=True)
-    eligible_non_core_branch = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'company'
-
-
-class Mails(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    roll_no = models.TextField(blank=True, null=True)
-    message = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'mails'
-
-class Documents(models.Model):
-    rollno = models.BigAutoField(primary_key=True)
-    results = models.TextField()
-    scorecard = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'documents'
