@@ -1,0 +1,188 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Company Search</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    #company-details {
+      margin-top: 20px;
+    }
+    input, button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+
+<button id="uploadBtn">Upload Company</button>
+<div id="uploadModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:9999; max-width:600px;">
+  <h3> Upload Company Data</h3>
+
+  <button onclick="showTab('single')">Single Upload</button>
+  <button onclick="showTab('bulk')">Bulk Upload</button>
+  <button onclick="closeModal()" style="float:right;">✖</button>
+
+
+  <div id="singleUploadTab" style="display:none; margin-top:15px;">
+    <form action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label>Company ID:</label><input type="text" name="company_id" required><br>
+      <label>Company Name:</label><input type="text" name="name" required><br>
+      <label>Type of Company:</label><input type="text" name="type_of_company"><br>
+      <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
+      <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
+      <label>Type of Job:</label><input type="text" name="type_of_job"><br>
+      <label>Job Profile:</label><input type="text" name="job_profile"><br>
+      <label>Job Offer:</label><input type="text" name="job_offer"><br>
+      <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
+      <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
+      <label>HR Contact:</label><input type="text" name="hr_contact_details"><br>
+      <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
+      <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
+      <button type="submit">Submit Single Upload</button>
+    </form>
+  </div>
+
+
+  <div id="bulkUploadTab" style="display:none; margin-top:15px;">
+    <form action="{% url 'upload_company_details_bulk' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label>Select CSV/Excel File:</label>
+      <input type="file" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required><br><br>
+      <button type="submit">Submit Bulk Upload</button>
+    </form>
+    <p>Download template file: <a href="{% url 'download_company_table_template' %}" target="_blank">Click here</a></p>
+  </div>
+</div>
+
+
+  <h2>Company Search</h2>
+
+  <label for="companySelect">Select a company:</label>
+  <select id="companySelect" style="width: 300px;">
+    <option></option> 
+    {% for company in companies %}
+      <option value="{{ company.company_id }}">{{ company.name }}</option>
+    {% endfor %}
+  </select>
+
+  <div id="company-details"></div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+    axios.defaults.headers.common['X-CSRFToken'] = getCSRFToken();
+    $(document).ready(function () {
+      const select = $('#companySelect');
+      const detailsDiv = document.getElementById('company-details');
+
+      select.select2({
+        placeholder: "Search for a company",
+        allowClear: true
+      });
+
+      select.on('change', function () {
+        const companyId = $(this).val();
+        if (!companyId) {
+          detailsDiv.innerHTML = '';
+          return;
+        }
+
+        axios.get(`/api/company/${companyId}/`)
+          .then(res => {
+            const company = res.data;
+            showCompanyDetails(company);
+          })
+          .catch(() => {
+            detailsDiv.innerHTML = `<p>Error fetching company data.</p>`;
+          });
+      });
+
+      function showCompanyDetails(company) {
+        detailsDiv.innerHTML = `
+          <h3>${company.name}</h3>
+          <p><strong>Type:</strong> ${company.type_of_company || ''}</p>
+          <p><strong>Job Profile:</strong> ${company.job_profile || ''}</p>
+          <p><strong>Package:</strong> ${company.max_package_offered || ''}</p>
+          <button onclick='editCompany(${JSON.stringify(company)})'>Edit</button>
+          <button onclick="deleteCompany('${company.company_id}')">Delete</button>
+        `;
+      }
+
+      window.editCompany = function (company) {
+        detailsDiv.innerHTML = `
+          <h3>Edit Company: ${company.name}</h3>
+          <form id="editForm">
+            <input name="name" value="${company.name}"><br>
+            <input name="type_of_company" value="${company.type_of_company}"><br>
+            <input name="job_profile" value="${company.job_profile}"><br>
+            <input name="max_package_offered" value="${company.max_package_offered}"><br>
+            <button type="submit">Update</button>
+          </form>
+        `;
+
+        document.getElementById('editForm').onsubmit = function(e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const payload = {};
+          formData.forEach((v, k) => payload[k] = v);
+        
+          axios.put(`/api/company/${company.company_id}/update/`, payload)
+            .then(() => {
+              alert('Updated successfully!');
+              select.val(company.company_id).trigger('change'); 
+            })
+            .catch(() => alert('Failed to update company.'));
+        }
+      }
+
+      window.deleteCompany = function (companyId) {
+        if (!confirm("Are you sure to delete this company?")) return;
+
+        axios.delete(`/api/company/${companyId}/delete/`)
+          .then(() => {
+            alert('Deleted successfully!');
+            detailsDiv.innerHTML = '';
+            select.val(null).trigger('change');
+          })
+          .catch(() => alert('Failed to delete company.'));
+      }
+    });
+    const modal = document.getElementById("uploadModal");
+    const singleTab = document.getElementById("singleUploadTab");
+    const bulkTab = document.getElementById("bulkUploadTab");
+
+    document.getElementById("uploadBtn").onclick = () => {
+        modal.style.display = "block";
+        showTab('single');  
+    };
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    function showTab(tab) {
+        singleTab.style.display = tab === 'single' ? 'block' : 'none';
+        bulkTab.style.display = tab === 'bulk' ? 'block' : 'none';
+    }
+
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+        closeModal();
+        }
+    };
+
+  </script>
+
+</body>
+</html>

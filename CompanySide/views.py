@@ -48,7 +48,7 @@ def upload_company_details_view(request):
             brochure_path=brochure_path
         )
 
-        return redirect('upload_company')  
+        return redirect('company_search')  
 
     return render(request, 'Upload_Company_Details.html')
 
@@ -104,7 +104,7 @@ def upload_company_details_bulk_view(request):
         else:
             messages.error(request, "Unsupported file format.")
 
-        return redirect('upload_company_details')
+        return redirect('company_search')
 
     return render(request, 'Upload_Company_Details.html')
 
@@ -153,3 +153,42 @@ def fetching_company_invitation_status(request):
                 continue
 
         return JsonResponse({'results': results})
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import CompanySerializer
+
+
+def company_search_page(request):
+    companies = Company.objects.all()
+    return render(request, 'company_search.html', {'companies': companies})
+
+@api_view(['GET'])
+def search_companies(request):
+    query = request.GET.get('q', '')
+    companies = Company.objects.filter(name__icontains=query)
+    serializer = CompanySerializer(companies, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_company(request, company_id):
+    company = Company.objects.get(company_id=company_id)
+    serializer = CompanySerializer(company)
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+def update_company(request, company_id):
+    company = Company.objects.get(company_id=company_id)
+    serializer = CompanySerializer(company, data=request.data,partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+@api_view(['DELETE'])
+def delete_company(request, company_id):
+    company = Company.objects.get(company_id=company_id)
+    company.delete()
+    return Response({"message": "Deleted successfully"})
