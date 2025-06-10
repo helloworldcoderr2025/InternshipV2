@@ -981,11 +981,11 @@ def tplogin(request):
         else :
             messages.info(request,'Invalid Credentials !!!')
             return redirect("login")
-    return render(request,"tplogin.html")
+    return render(request,"T&P_Dashboard.html")
 
 @login_required(login_url='tplogin')
 def tpportal(request):
-    return render(request,"tpportal.html")
+    return render(request,"T&P_Dashboard.html")
 
 @login_required(login_url='tplogin')
 def verifystudents(request):
