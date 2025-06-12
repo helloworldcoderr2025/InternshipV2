@@ -1,0 +1,8 @@
+Dear {{ company.name }},
+
+This is a gentle reminder regarding our invitation for the placement drive on {{ invitation_date }} . We haven’t received your response yet.
+
+Please let us know your decision at your earliest convenience.
+
+Regards,  
+T&P Cell

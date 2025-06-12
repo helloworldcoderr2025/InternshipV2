@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse,JsonResponse
 from MainInterface.models import Company,CompanyInvitations
+from django.template.loader import render_to_string
+from .utils import send_custom_email
+from django.utils import timezone
 import csv,openpyxl,json
 
 def TNP_Dashboard_view(request):
@@ -50,7 +53,6 @@ def upload_company_details_view(request):
 
         return redirect('company_search')  
 
-    return render(request, 'Upload_Company_Details.html')
 
 def upload_company_details_bulk_view(request):
     if request.method == 'POST':
@@ -106,7 +108,7 @@ def upload_company_details_bulk_view(request):
 
         return redirect('company_search')
 
-    return render(request, 'Upload_Company_Details.html')
+
 
 def download_company_table_template_view(request):
     response = HttpResponse(content_type='text/csv')
@@ -192,3 +194,123 @@ def delete_company(request, company_id):
     company = Company.objects.get(company_id=company_id)
     company.delete()
     return Response({"message": "Deleted successfully"})
+
+@csrf_exempt
+def fetching_company_invitation_status_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        company_ids = data.get('company_ids', [])
+        results = []
+
+        for cid in company_ids:
+            try:
+                company = Company.objects.get(company_id=cid)
+                invites = CompanyInvitations.objects.filter(company_id=cid).order_by('-invited_date')
+                if invites.exists():
+                    latest_invite = invites.first()
+                    reminders = latest_invite.no_of_reminders or "0"
+                    results.append({
+                        'company_id': cid,
+                        'name': company.name,
+                        'invited': True,
+                        'dates': [inv.invited_date for inv in invites],
+                        'reminders': reminders,
+                        'response_status': latest_invite.response,
+                    })
+                else:
+                    results.append({
+                        'company_id': cid,
+                        'name': company.name,
+                        'invited': False,
+                        'dates': [],
+                        'reminders': "0",
+                        'response_status': None,
+                    })
+            except Company.DoesNotExist:
+                continue
+
+        return JsonResponse({'results': results})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+
+@csrf_exempt
+def get_email_preview_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        company_id = data['company_id']
+        mode = data['mode']
+
+        company = Company.objects.get(company_id=company_id)
+
+        context = {
+            'company': company,
+            'invitation_date': timezone.now().date()
+        }
+
+        template_name = f"emails/{mode}.txt"
+        email_body = render_to_string(template_name, context)
+
+        return JsonResponse({'email': email_body})
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+
+@csrf_exempt
+def send_email_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        company_id = data['company_id']
+        mode = data['mode']
+        email_body = data['email']
+        invited_date = data.get('invited_date')  # Might be None for reminder
+
+        company = Company.objects.get(company_id=company_id)
+
+        if mode == 'invitation':
+            if not invited_date:
+                return JsonResponse({'error': 'Invitation date is required'}, status=400)
+
+            # Create or update the invitation
+            CompanyInvitations.objects.update_or_create(
+                company_id=company_id,
+                defaults={
+                    'invited_date': invited_date,
+                    'no_of_reminders': '0',
+                    'response': 'Pending'
+                }
+            )
+
+            # Send email
+            send_custom_email(
+                subject="TNP Invitation",
+                to_email=company.hr_contact_details,
+                body=email_body
+            )
+            return JsonResponse({'status': 'invitation_sent'})
+
+        elif mode == 'reminder':
+            try:
+                invitation = CompanyInvitations.objects.get(company_id=company_id)
+                current_reminders = int(invitation.no_of_reminders or '0')
+                invitation.no_of_reminders = str(current_reminders + 1)
+                invitation.save()
+
+                send_custom_email(
+                    subject="TNP Reminder",
+                    to_email=company.hr_contact_details,
+                    body=email_body
+                )
+                return JsonResponse({'status': 'reminder_sent'})
+            except CompanyInvitations.DoesNotExist:
+                return JsonResponse({'error': 'Invitation not found for reminder'}, status=400)
+
+        else:
+            return JsonResponse({'error': 'Invalid mode'}, status=400)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
