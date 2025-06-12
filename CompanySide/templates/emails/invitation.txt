@@ -1,0 +1,8 @@
+Dear {{ company.name }},
+
+We are pleased to invite your esteemed organization to participate in our campus placement drive on {{ invitation_date }}.
+
+Kindly consider this opportunity. Looking forward to your response.
+
+Regards,  
+T&P Cell

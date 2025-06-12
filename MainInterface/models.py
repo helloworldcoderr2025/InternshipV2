@@ -93,6 +93,8 @@ class Company(models.Model):
 class CompanyInvitations(models.Model):
     company_id = models.TextField(primary_key=True)  # The composite primary key (company_id, invited_date) found, that is not supported. The first column is selected.
     invited_date = models.TextField()
+    no_of_reminders = models.TextField(blank=True, null=True)
+    response = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

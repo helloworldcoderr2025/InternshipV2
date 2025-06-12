@@ -71,6 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "Project.wsgi.application"
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
