@@ -23,7 +23,9 @@ def upload_company_details_view(request):
         job_offer = request.POST.get('job_offer')
         max_package_offered = request.POST.get('max_package_offered')
         eligible_passouts = request.POST.get('eligible_passouts')
-        hr_contact_details = request.POST.get('hr_contact_details')
+        hr_contact_email = request.POST.get('hr_contact_email')
+        hr_contact_phno = request.POST.get('hr_contact_phno')
+        hr_contact_alternate = request.POST.get('hr_contact_alternate')
         google_form_link = request.POST.get('google_form_link')
         brochure = request.FILES.get('brochure')
         brochure_path = ''
@@ -41,12 +43,14 @@ def upload_company_details_view(request):
             type_of_company=type_of_company,
             eligible_core_branch=eligible_core_branch,
             eligible_non_core_branch=eligible_non_core_branch,
-            type_of_job=type_of_job,
+
             job_profile=job_profile,
             job_offer=job_offer,
             max_package_offered=max_package_offered,
             eligible_passouts=eligible_passouts,
-            hr_contact_details=hr_contact_details,
+            hr_contact_email=hr_contact_email,
+            hr_contact_alternate=hr_contact_alternate,
+            hr_contact_phno=hr_contact_phno,
             google_form_link=google_form_link,
             brochure_path=brochure_path
         )

@@ -71,7 +71,7 @@ class AuthUserUserPermissions(models.Model):
 
 
 class Company(models.Model):
-    company_id = models.TextField(primary_key=True)  # The composite primary key (company_id, name, job_profile, job_offer) found, that is not supported. The first column is selected.
+    company_id = models.TextField(primary_key=True)  # The composite primary key (company_id, job_profile, job_offer) found, that is not supported. The first column is selected.
     name = models.TextField()
     type_of_company = models.TextField(blank=True, null=True)
     eligible_core_branch = models.TextField(blank=True, null=True)
@@ -79,27 +79,31 @@ class Company(models.Model):
     job_offer = models.TextField()
     max_package_offered = models.TextField(blank=True, null=True)
     eligible_passouts = models.TextField(blank=True, null=True)
-    hr_contact_details = models.TextField(blank=True, null=True)
+    hr_contact_email = models.TextField(blank=True, null=True)
     google_form_link = models.TextField(blank=True, null=True)
     brochure_path = models.TextField(blank=True, null=True)
     eligible_non_core_branch = models.TextField(blank=True, null=True)
+    hr_contact_phno = models.TextField(blank=True, null=True)
+    hr_contact_alternate = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'company'
-        unique_together = (('company_id', 'name', 'job_profile', 'job_offer'),)
+        unique_together = (('company_id', 'job_profile', 'job_offer'),)
 
 
 class CompanyInvitations(models.Model):
-    company_id = models.TextField(primary_key=True)  # The composite primary key (company_id, invited_date) found, that is not supported. The first column is selected.
+    company = models.OneToOneField(Company, models.DO_NOTHING, primary_key=True)  # The composite primary key (company_id, invited_date, job_profile, job_offer) found, that is not supported. The first column is selected.
     invited_date = models.TextField()
     no_of_reminders = models.TextField(blank=True, null=True)
     response = models.TextField(blank=True, null=True)
+    job_profile = models.TextField()
+    job_offer = models.TextField()
 
     class Meta:
         managed = False
         db_table = 'company_invitations'
-        unique_together = (('company_id', 'invited_date'),)
+        unique_together = (('company', 'invited_date', 'job_profile', 'job_offer'),)
 
 
 class CseDepartment(models.Model):

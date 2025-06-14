@@ -40,7 +40,9 @@
       <label>Job Offer:</label><input type="text" name="job_offer"><br>
       <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
       <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
-      <label>HR Contact:</label><input type="text" name="hr_contact_details"><br>
+      <label>HR Contact Email:</label><input type="text" name="hr_contact_email"><br>
+      <label>HR Contact Phone Number:</label><input type="text" name="hr_contact_phno"><br>
+      <label>HR Contact Alternate:</label><input type="text" name="hr_contact_alternate"><br>
       <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
       <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
       <button type="submit">Submit Single Upload</button>
@@ -116,7 +118,9 @@
           <p><strong>Job Offer: </strong> ${company.job_offer || ''}</p>
           <p><strong>Package Offered: </strong> ${company.max_package_offered || ''}</p>
           <p><strong>Eligible Batches: </strong> ${company.eligible_passouts || ''}</p>
-          <p><strong>HR Contact Details: </strong> ${company.hr_contact_details || ''}</p>
+          <p><strong>HR Contact Email: </strong> ${company.hr_contact_email || ''}</p>
+          <p><strong>HR Contact Phone Number: </strong>${company.hr_contact_phno || ''}</p>
+          <p><strong>HR Contact Alternate: </strong>${company.hr_contact_alternate || ''}</p>
           <p><strong>Google Form link: </strong> ${company.google_form_link || ''}</p>
           <p><strong>Eligible Core Branch(es): </strong> ${company.eligible_core_branch || ''}</p>
           <p><strong>Eligible Non-core Branch(es): </strong> ${company.eligible_non_core_branch || ''}</p>
@@ -147,8 +151,14 @@
             <label>Eligible Batches:</label>
             <input name="eligible_passouts" value="${company.eligible_passouts || ''}"><br><br>
 
-            <label>HR Contact Details:</label>
-            <input name="hr_contact_details" value="${company.hr_contact_details || ''}"><br><br>
+            <label>HR Contact Email:</label>
+            <input name="hr_contact_email" value="${company.hr_contact_email || ''}"><br><br>
+
+            <label>HR Contact Phone Number:</label>
+            <input name="hr_contact_phno" value="${company.hr_contact_phno || ''}"><br><br>
+
+            <label>HR Contact Alternate:</label>
+            <input name="hr_contact_alternate" value="${company.hr_contact_alternate || ''}"><br><br>
 
             <label>Google Form Link:</label>
             <input name="google_form_link" value="${company.google_form_link || ''}"><br><br>
@@ -173,7 +183,7 @@
           axios.put(`/api/company/${company.company_id}/update/`, payload)
             .then(() => {
               alert('Updated successfully!');
-              select.val(company.company_id).trigger('change'); // Assumes you're using jQuery/Select2
+              select.val(company.company_id).trigger('change'); 
             })
             .catch(() => alert('Failed to update company.'));
         }
