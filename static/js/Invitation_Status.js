@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await axios.post('/fetching_company_invitation_status/', {
                 company_ids: selectedCompanies
             });
+            console.log(response);
             renderResults(response.data.results);
         } catch (error) {
             console.error("Error fetching status", error);
@@ -72,7 +73,7 @@ document.getElementById('emailForm').addEventListener('submit', async function (
     const mode = document.getElementById('modalMode').value;
     const content = document.getElementById('emailContent').value;
     const invitedDate = document.getElementById('invitationDate').value;
-
+    const selectedCompanies = $('#companySelect').val(); 
     try {
         await axios.post('/send_email/', { 
             company_id: companyId, 
@@ -82,16 +83,15 @@ document.getElementById('emailForm').addEventListener('submit', async function (
         });
         alert("Mail sent!");
         closeModal();
-        const selectedCompanies = $('#companySelect').val();  // get selected values
         if (selectedCompanies.length > 0) {
             const response = await axios.post('/fetching_company_invitation_status/', {
                 company_ids: selectedCompanies
             });
-            renderResults(response.data.results);  // re-render results
+            console.log(response);
+            renderResults(response.data.results);  
         }
-
-
     } catch (err) {
+        console.log("I got this");
         alert("Failed to send mail.");
     }
 });

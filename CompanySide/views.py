@@ -7,6 +7,10 @@ from django.template.loader import render_to_string
 from .utils import send_custom_email
 from django.utils import timezone
 import csv,openpyxl,json
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from urllib.parse import urlencode
 
 def TNP_Dashboard_view(request):
     return render(request,'T&P_Dashboard.html')
@@ -209,7 +213,7 @@ def fetching_company_invitation_status_view(request):
         for cid in company_ids:
             try:
                 company = Company.objects.get(company_id=cid)
-                invites = CompanyInvitations.objects.filter(company_id=cid).order_by('-invited_date')
+                invites = CompanyInvitations.objects.filter(company=company).order_by('-invited_date')
                 if invites.exists():
                     latest_invite = invites.first()
                     reminders = latest_invite.no_of_reminders or "0"
@@ -281,32 +285,34 @@ def send_email_view(request):
 
             # Create or update the invitation
             CompanyInvitations.objects.update_or_create(
-                company_id=company_id,
+                company=company,
                 defaults={
                     'invited_date': invited_date,
                     'no_of_reminders': '0',
-                    'response': 'Pending'
+                    'response': 'Pending',
+                    'job_profile':company.job_profile,
+                    'job_offer':company.job_offer
                 }
             )
-
+            print("Arrived in invitation")
             # Send email
             send_custom_email(
                 subject="TNP Invitation",
-                to_email=company.hr_contact_details,
+                to_email=company.hr_contact_email,
                 body=email_body
             )
             return JsonResponse({'status': 'invitation_sent'})
 
         elif mode == 'reminder':
             try:
-                invitation = CompanyInvitations.objects.get(company_id=company_id)
+                invitation = CompanyInvitations.objects.get(company=company)
                 current_reminders = int(invitation.no_of_reminders or '0')
                 invitation.no_of_reminders = str(current_reminders + 1)
                 invitation.save()
 
                 send_custom_email(
                     subject="TNP Reminder",
-                    to_email=company.hr_contact_details,
+                    to_email=company.hr_contact_email,
                     body=email_body
                 )
                 return JsonResponse({'status': 'reminder_sent'})
@@ -318,3 +324,175 @@ def send_email_view(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from urllib.parse import urlencode
+
+
+RESPONSE_CHOICES = [
+    'Willing to come to campus',
+    'Not willing to come to campus',
+    'Not responded',
+]
+
+def update_response_view(request):
+    invitations = CompanyInvitations.objects.select_related('company').all()
+    selected_invite = None
+
+    # Handle GET request to select an invitation
+    if request.method == 'GET' and 'invitation_key' in request.GET:
+        try:
+            company_id, invited_date, job_profile, job_offer = request.GET['invitation_key'].split('|')
+            selected_invite = get_object_or_404(
+                CompanyInvitations,
+                company_id=company_id,
+                invited_date=invited_date,
+                job_profile=job_profile,
+                job_offer=job_offer
+            )
+        except ValueError:
+            selected_invite = None  # Invalid invitation key format
+
+    # Handle POST request to update response
+    if request.method == 'POST':
+        company_id = request.POST.get('company_id')
+        invited_date = request.POST.get('invited_date')
+        job_profile = request.POST.get('job_profile')
+        job_offer = request.POST.get('job_offer')
+        new_response = request.POST.get('new_response')
+
+        invitation = get_object_or_404(
+            CompanyInvitations,
+            company_id=company_id,
+            invited_date=invited_date,
+            job_profile=job_profile,
+            job_offer=job_offer
+        )
+
+        invitation.response = new_response
+        invitation.save()
+
+        # ✅ Use reverse + urlencode for proper redirect with query string
+        url = reverse('update_response')
+        query_string = urlencode({
+            'invitation_key': f'{company_id}|{invited_date}|{job_profile}|{job_offer}'
+        })
+        return redirect(f'{url}?{query_string}')
+
+    return render(request, 'update_response.html', {
+        'invitations': invitations,
+        'selected_invite': selected_invite,
+        'response_choices': RESPONSE_CHOICES,
+    })
+
+
+
+def company_data_portal(request):
+    # Get filter and sort parameters (defaults to blank or 'name')
+    filter_type = request.GET.get('type_of_company', '')
+    filter_profile = request.GET.get('job_profile', '')
+    filter_offer = request.GET.get('job_offer', '')
+    sort_by = request.GET.get('sort_by', 'name')
+    page_number = request.GET.get('page', 1)
+
+    # Start with all companies
+    companies = Company.objects.all()
+
+    # Apply filters only if specified
+    if filter_type:
+        companies = companies.filter(type_of_company=filter_type)
+    if filter_profile:
+        companies = companies.filter(job_profile=filter_profile)
+    if filter_offer:
+        companies = companies.filter(job_offer=filter_offer)
+
+    # Apply sorting
+    sort_mapping = {
+        'name': 'name',
+        'type_of_company': 'type_of_company',
+        'job_profile': 'job_profile',
+        'job_offer': 'job_offer',
+        'max_package_offered': 'max_package_offered',
+    }
+    companies = companies.order_by(sort_mapping.get(sort_by, 'name'))
+
+    # Paginate results (10 per page)
+    paginator = Paginator(companies, 10)
+    page_obj = paginator.get_page(page_number)
+
+    # Get distinct filter options
+    filter_types = Company.objects.values_list('type_of_company', flat=True).distinct()
+    filter_profiles = Company.objects.values_list('job_profile', flat=True).distinct()
+    filter_offers = Company.objects.values_list('job_offer', flat=True).distinct()
+
+    context = {
+        'page_obj': page_obj,
+        'filter_type': filter_type,
+        'filter_profile': filter_profile,
+        'filter_offer': filter_offer,
+        'sort_by': sort_by,
+        'filter_types': filter_types,
+        'filter_profiles': filter_profiles,
+        'filter_offers': filter_offers,
+    }
+
+    return render(request, 'company_data_portal.html', context)
+
+
+
+from django.core.paginator import Paginator
+
+
+def company_invitations_portal(request):
+    # GET parameters
+    filter_profile = request.GET.get('job_profile', '')
+    filter_offer = request.GET.get('job_offer', '')
+    filter_response = request.GET.get('response', '')
+    sort_by = request.GET.get('sort_by', 'invited_date')
+    page_number = request.GET.get('page', 1)
+
+    invitations = CompanyInvitations.objects.select_related('company').all()
+
+    # Apply filters
+    if filter_profile:
+        invitations = invitations.filter(job_profile=filter_profile)
+    if filter_offer:
+        invitations = invitations.filter(job_offer=filter_offer)
+    if filter_response:
+        invitations = invitations.filter(response=filter_response)
+
+    # Sort mapping
+    sort_mapping = {
+        'company': 'company__name',
+        'invited_date': 'invited_date',
+        'job_profile': 'job_profile',
+        'job_offer': 'job_offer',
+        'response': 'response',
+        'no_of_reminders': 'no_of_reminders',
+    }
+    invitations = invitations.order_by(sort_mapping.get(sort_by, 'invited_date'))
+
+    # Pagination
+    paginator = Paginator(invitations, 10)
+    page_obj = paginator.get_page(page_number)
+
+    # Distinct filter values
+    profiles = CompanyInvitations.objects.values_list('job_profile', flat=True).distinct()
+    offers = CompanyInvitations.objects.values_list('job_offer', flat=True).distinct()
+    responses = CompanyInvitations.objects.values_list('response', flat=True).distinct()
+
+    context = {
+        'page_obj': page_obj,
+        'filter_profile': filter_profile,
+        'filter_offer': filter_offer,
+        'filter_response': filter_response,
+        'sort_by': sort_by,
+        'profiles': profiles,
+        'offers': offers,
+        'responses': responses,
+    }
+
+    return render(request, 'company_invitations_portal.html', context)
+

@@ -1,4 +1,4 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,16 +7,84 @@
 </head>
 <body>
 
-  <h1>Training & Placement Dashboard</h1>
+<h1>Training & Placement Dashboard</h1>
 
-  <nav>
-    <ul>
-      <li><a href="#">Dashboard</a></li>
-      <li><a href="{% url  'check_company_invite_status' %}">Manage Invitations</a></li>
-      <li><a href="{% url 'company_search' %}">Search Companies</a></li>
-    </ul>
-  </nav>
+<nav>
+  <ul>
+    <li><a href="#">Dashboard</a></li>
+    <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
+    <li><a href="{% url 'company_search' %}">Search Companies</a></li>
+    <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
+    <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
+    <li><a href="{% url 'company_invitations_portal' %}">Invitations to Companies</a></li>
+  </ul>
+</nav>
 
+<hr>
+
+<h2>Companies Willing to Come to Campus</h2>
+
+<!-- Filter and Sorting Form -->
+<form method="get" action="{% url 'tpportal' %}">
+  <label for="invited_date">Filter by Invited Date:</label>
+  <input type="date" name="invited_date" value="{{ selected_date }}">
+
+  <label for="sort_by">Sort by:</label>
+  <select name="sort_by">
+    <option value="company__name" {% if sort_by == 'company__name' %}selected{% endif %}>Company Name</option>
+    <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
+    <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
+    <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
+  </select>
+
+  <button type="submit">Apply</button>
+  {% if selected_date %}
+    <a href="{% url 'tpportal' %}">Clear Filters</a>
+  {% endif %}
+</form>
+
+<hr>
+
+<p><strong>Total Companies Willing to Come:</strong> {{ total_count }}</p>
+
+{% if page_obj %}
+  <table border="1" cellpadding="6" cellspacing="0">
+    <tr>
+      <th>Company Name</th>
+      <th>Job Profile</th>
+      <th>Job Offer</th>
+      <th>Invited Date</th>
+      <th>Contact Email</th>
+      <th>Contact Phone</th>
+    </tr>
+    {% for invite in page_obj %}
+      <tr>
+        <td>{{ invite.company.name }}</td>
+        <td>{{ invite.job_profile }}</td>
+        <td>{{ invite.job_offer }}</td>
+        <td>{{ invite.invited_date }}</td>
+        <td>{{ invite.company.hr_contact_email|default:"N/A" }}</td>
+        <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <!-- Pagination Controls -->
+  <div style="margin-top: 20px;">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><br>
+
+    {% if page_obj.has_previous %}
+      <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% if page_obj.has_next %}
+      <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+  </div>
+
+{% else %}
+  <p>No companies found with 'Willing to come to campus'.</p>
+{% endif %}
 
 </body>
 </html>

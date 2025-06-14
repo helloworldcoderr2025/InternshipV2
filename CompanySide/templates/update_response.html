@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Invitation Response</title>
+</head>
+<body>
+    <h1>Update Invitation Response</h1>
+    <button><a href="{% url 'tpportal' %}">back</a></button>
+
+    <!-- Select Invitation -->
+    <form method="get">
+        <label>Select Invitation:</label>
+        <select name="invitation_key" onchange="this.form.submit()">
+            <option value="">-- Choose an invitation --</option>
+            {% for invitation in invitations %}
+                {% with invitation.company.name as name %}
+                    {% with invitation.company.company_id as cid %}
+                        <option value="{{ cid }}|{{ invitation.invited_date }}|{{ invitation.job_profile }}|{{ invitation.job_offer }}"
+                        {% if selected_invite and invitation == selected_invite %}selected{% endif %}>
+                            {{ name }} | {{ invitation.job_profile }} | {{ invitation.job_offer }} | {{ invitation.invited_date }}
+                        </option>
+                    {% endwith %}
+                {% endwith %}
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if selected_invite %}
+        <hr>
+        <h3>Current Response: {{ selected_invite.response|default:"Pending" }}</h3>
+        <form method="post">
+            {% csrf_token %}
+            <!-- Hidden fields to uniquely identify the invitation -->
+            <input type="hidden" name="company_id" value="{{ selected_invite.company.company_id }}">
+            <input type="hidden" name="invited_date" value="{{ selected_invite.invited_date }}">
+            <input type="hidden" name="job_profile" value="{{ selected_invite.job_profile }}">
+            <input type="hidden" name="job_offer" value="{{ selected_invite.job_offer }}">
+            
+
+            <label for="new_response">Update Response:</label>
+            <select name="new_response" required>
+                <option value="">-- Select Response --</option>
+                {% for choice in response_choices %}
+                    <option value="{{ choice }}" {% if selected_invite.response == choice %}selected{% endif %}>
+                        {{ choice }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit">Update</button>
+            
+        </form>
+    {% endif %}
+</body>
+</html>

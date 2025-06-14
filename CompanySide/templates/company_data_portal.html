@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Data Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+    </script>
+</head>
+<body>
+
+<h1>Company Data Portal</h1>
+<button><a href="{% url 'tpportal' %}">back</a></button>
+
+<!-- Combined Filter + Sort Form -->
+<form method="get" action="{% url 'company_data_portal' %}">
+    <label for="type_of_company">Type of Company:</label>
+    <select name="type_of_company" class="select2">
+        <option value="">All</option>
+        {% for type in filter_types %}
+            <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="job_profile">Job Profile:</label>
+    <select name="job_profile" class="select2">
+        <option value="">All</option>
+        {% for profile in filter_profiles %}
+            <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="job_offer">Job Offer:</label>
+    <select name="job_offer" class="select2">
+        <option value="">All</option>
+        {% for offer in filter_offers %}
+            <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="sort_by">Sort by:</label>
+    <select name="sort_by" class="select2">
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+        <option value="type_of_company" {% if sort_by == 'type_of_company' %}selected{% endif %}>Type of Company</option>
+        <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
+        <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
+        <option value="max_package_offered" {% if sort_by == 'max_package_offered' %}selected{% endif %}>Max Package Offered</option>
+    </select>
+
+    <button type="submit">Apply</button>
+</form>
+
+<!-- Company Table -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type of Company</th>
+            <th>Job Profile</th>
+            <th>Job Offer</th>
+            <th>Max Package Offered</th>
+            <th>HR Contact Email</th>
+            <th>HR Contact Phone</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for company in page_obj %}
+        <tr>
+            <td>{{ company.name }}</td>
+            <td>{{ company.type_of_company }}</td>
+            <td>{{ company.job_profile }}</td>
+            <td>{{ company.job_offer }}</td>
+            <td>{{ company.max_package_offered }}</td>
+            <td>{{ company.hr_contact_email }}</td>
+            <td>{{ company.hr_contact_phno }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No companies found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<div>
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><br>
+    {% if page_obj.has_previous %}
+        <a href="?page=1&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Last</a>
+    {% endif %}
+</div>
+
+</body>
+</html>

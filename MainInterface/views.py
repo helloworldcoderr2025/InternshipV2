@@ -983,9 +983,40 @@ def tplogin(request):
             return redirect("login")
     return render(request,"tplogin.html")
 
+from MainInterface.models import Company,CompanyInvitations
+from django.core.paginator import Paginator
+
 @login_required
 def tpportal(request):
-    return render(request,"T&P_Dashboard.html")
+    selected_date = request.GET.get('invited_date')
+    sort_by = request.GET.get('sort_by', 'company__name')
+    page_number = request.GET.get('page', 1)
+
+    invitations = CompanyInvitations.objects.select_related('company').filter(response='Willing to come to campus')
+
+    if selected_date:
+        invitations = invitations.filter(invited_date=selected_date)
+
+    sort_mapping = {
+        'company__name': 'company__name',
+        'job_profile': 'job_profile',
+        'job_offer': 'job_offer',
+        'invited_date': 'invited_date'
+    }
+
+    sort_field = sort_mapping.get(sort_by, 'company__name')
+    invitations = invitations.order_by(sort_field)
+
+    paginator = Paginator(invitations, 10)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'T&P_Dashboard.html', {
+        'page_obj': page_obj,
+        'selected_date': selected_date,
+        'sort_by': sort_by,
+        'total_count': invitations.count(),
+    })
+
 
 @login_required
 def verifystudents(request):
