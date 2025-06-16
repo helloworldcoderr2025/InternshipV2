@@ -140,7 +140,7 @@ def download_company_table_template_view(request):
     return response
 
 def check_company_invite_status_view(request):
-    companies = Company.objects.all()
+    companies = Company.objects.all().order_by('name')
     return render(request, 'Invitation_Status.html', {'companies': companies})
 
 @csrf_exempt
@@ -172,7 +172,7 @@ from .serializers import CompanySerializer
 
 
 def company_search_page(request):
-    companies = Company.objects.all()
+    companies = Company.objects.all().order_by('name')
     return render(request, 'company_search.html', {'companies': companies})
 
 @api_view(['GET'])
