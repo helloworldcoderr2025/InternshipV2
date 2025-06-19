@@ -1,8 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Company Data Portal</title>
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -13,92 +15,127 @@
     </script>
 </head>
 <body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>T&P Portal</h2>
+      <p>Admin Dashboard</p>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
+        <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
+        <li><a href="{% url 'company_search' %}">Search Companies</a></li>
+        <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
+        <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
+        <li><a href="{% url 'company_invitations_portal' %}">Invitations to Companies</a></li>
+      </ul>
+    </nav>
+  </div>
 
-<h1>Company Data Portal</h1>
-<button><a href="{% url 'tpportal' %}">back</a></button>
+  <div class="company-data-portal-layout">
+    <h1 class="company-data-portal-header">Company Data Portal</h1>
+    <a href="{% url 'tpportal' %}" class="company-data-back-button">← Back</a>
 
-<!-- Combined Filter + Sort Form -->
-<form method="get" action="{% url 'company_data_portal' %}">
-    <label for="type_of_company">Type of Company:</label>
-    <select name="type_of_company" class="select2">
-        <option value="">All</option>
-        {% for type in filter_types %}
-            <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
-        {% endfor %}
-    </select>
+    <!-- Combined Filter + Sort Form -->
+    <form method="get" action="{% url 'company_data_portal' %}" class="company-data-filters">
+        <div class="company-data-filter-group">
+            <label for="type_of_company" class="company-data-filter-label">Type of Company:</label>
+            <select name="type_of_company" class="company-data-filter-select select2">
+                <option value="">All</option>
+                {% for type in filter_types %}
+                    <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <label for="job_profile">Job Profile:</label>
-    <select name="job_profile" class="select2">
-        <option value="">All</option>
-        {% for profile in filter_profiles %}
-            <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
-        {% endfor %}
-    </select>
+        <div class="company-data-filter-group">
+            <label for="job_profile" class="company-data-filter-label">Job Profile:</label>
+            <select name="job_profile" class="company-data-filter-select select2">
+                <option value="">All</option>
+                {% for profile in filter_profiles %}
+                    <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <label for="job_offer">Job Offer:</label>
-    <select name="job_offer" class="select2">
-        <option value="">All</option>
-        {% for offer in filter_offers %}
-            <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
-        {% endfor %}
-    </select>
+        <div class="company-data-filter-group">
+            <label for="job_offer" class="company-data-filter-label">Job Offer:</label>
+            <select name="job_offer" class="company-data-filter-select select2">
+                <option value="">All</option>
+                {% for offer in filter_offers %}
+                    <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <label for="sort_by">Sort by:</label>
-    <select name="sort_by" class="select2">
-        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
-        <option value="type_of_company" {% if sort_by == 'type_of_company' %}selected{% endif %}>Type of Company</option>
-        <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
-        <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
-        <option value="max_package_offered" {% if sort_by == 'max_package_offered' %}selected{% endif %}>Max Package Offered</option>
-    </select>
+        <div class="company-data-filter-group">
+            <label for="sort_by" class="company-data-filter-label">Sort by:</label>
+            <select name="sort_by" class="company-data-filter-select select2">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                <option value="type_of_company" {% if sort_by == 'type_of_company' %}selected{% endif %}>Type of Company</option>
+                <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
+                <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
+                <option value="max_package_offered" {% if sort_by == 'max_package_offered' %}selected{% endif %}>Max Package Offered</option>
+            </select>
+        </div>
 
-    <button type="submit">Apply</button>
-</form>
+        <button type="submit" class="company-data-apply-button">Apply</button>
+    </form>
 
-<!-- Company Table -->
-<table border="1">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type of Company</th>
-            <th>Job Profile</th>
-            <th>Job Offer</th>
-            <th>Max Package Offered</th>
-            <th>HR Contact Email</th>
-            <th>HR Contact Phone</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for company in page_obj %}
-        <tr>
-            <td>{{ company.name }}</td>
-            <td>{{ company.type_of_company }}</td>
-            <td>{{ company.job_profile }}</td>
-            <td>{{ company.job_offer }}</td>
-            <td>{{ company.max_package_offered }}</td>
-            <td>{{ company.hr_contact_email }}</td>
-            <td>{{ company.hr_contact_phno }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">No companies found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Company Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type of Company</th>
+                    <th>Job Profile</th>
+                    <th>Job Offer</th>
+                    <th>Max Package Offered</th>
+                    <th>HR Contact Email</th>
+                    <th>HR Contact Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in page_obj %}
+                <tr>
+                    <td>{{ company.name }}</td>
+                    <td>{{ company.type_of_company }}</td>
+                    <td><span class="job-profile-badge">{{ company.job_profile }}</span></td>
+                    <td>{{ company.job_offer }}</td>
+                    <td>{{ company.max_package_offered }}</td>
+                    <td>
+                      {% if company.hr_contact_email %}
+                        <a href="mailto:{{ company.hr_contact_email }}" class="email-link">{{ company.hr_contact_email }}</a>
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </td>
+                    <td>{{ company.hr_contact_phno|default:"N/A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-data">No companies found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<!-- Pagination Controls -->
-<div>
-    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><br>
-    {% if page_obj.has_previous %}
-        <a href="?page=1&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Previous</a>
-    {% endif %}
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Next</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Last</a>
-    {% endif %}
-</div>
-
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <div class="pagination-controls">
+            {% if page_obj.has_previous %}
+                <a href="?page=1&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&sort_by={{ sort_by }}&type_of_company={{ filter_type }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}">Last</a>
+            {% endif %}
+        </div>
+    </div>
+  </div>
 </body>
 </html>
