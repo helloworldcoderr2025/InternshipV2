@@ -1,132 +1,107 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Company Invitations Portal</title>
-    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
-    </script>
+  <meta charset="UTF-8">
+  <title>Company Search</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    #company-details {
+      margin-top: 20px;
+    }
+    input, button {
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>T&P Portal</h2>
-      <p>Admin Dashboard</p>
+    <div class="sidebar">
+        <div class="sidebar-header">
+        <h2>T&P Portal</h2>
+        <p>Admin Dashboard</p>
+        </div>
+        <nav>
+        <ul>
+            <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
+            <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
+            <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
+            <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
+            <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
+            <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
+        </ul>
+        </nav>
     </div>
-    <nav>
-      <ul>
-        <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
-        <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-        <li><a href="{% url 'company_search' %}">Search Companies</a></li>
-        <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-        <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
-        <li><a href="{% url 'company_invitations_portal' %}">Invitations to Companies</a></li>
-      </ul>
-    </nav>
-  </div>
-
-  <div class="company-invitations-portal-layout">
-    <h1 class="company-invitations-portal-header">Company Invitations Portal</h1>
-    <a href="{% url 'tpportal' %}" class="company-invitations-back-link">← Back</a>
-
-    <!-- Filter & Sort Form -->
-    <form method="get" action="{% url 'company_invitations_portal' %}" class="company-invitations-filters">
-        <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Job Profile:</label>
-            <select name="job_profile" class="company-invitations-filter-select select2">
-                <option value="">All</option>
-                {% for profile in profiles %}
-                    <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
+    <div class="invitation-management-layout">
+            <h1> Upload Company Data</h1>
+        <div class="invitation-search-section">
+            <h2>Company Search</h2>
+            <label for="companySelect">Select a company:</label>
+            <select id="companySelect" style="width: 300px;">
+                <option></option> 
+                {% for company in companies %}
+                <option value="{{ company.company_id }}">{{ company.name }}</option>
                 {% endfor %}
             </select>
-        </div>
-
-        <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Job Offer:</label>
-            <select name="job_offer" class="company-invitations-filter-select select2">
-                <option value="">All</option>
-                {% for offer in offers %}
-                    <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Response:</label>
-            <select name="response" class="company-invitations-filter-select select2">
-                <option value="">All</option>
-                {% for r in responses %}
-                    <option value="{{ r }}" {% if filter_response == r %}selected{% endif %}>{{ r }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Sort by:</label>
-            <select name="sort_by" class="company-invitations-filter-select select2">
-                <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
-                <option value="company" {% if sort_by == 'company' %}selected{% endif %}>Company Name</option>
-                <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
-                <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
-                <option value="response" {% if sort_by == 'response' %}selected{% endif %}>Response</option>
-                <option value="no_of_reminders" {% if sort_by == 'no_of_reminders' %}selected{% endif %}>Reminders</option>
-            </select>
-        </div>
-
-        <button type="submit" class="company-invitations-apply-button">Apply</button>
-    </form>
-
-    <!-- Invitations Table -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Company Name</th>
-                    <th>Invited Date</th>
-                    <th>Job Profile</th>
-                    <th>Job Offer</th>
-                    <th>No. of Reminders</th>
-                    <th>Response</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for invitation in page_obj %}
-                <tr>
-                    <td>{{ invitation.company.name }}</td>
-                    <td>{{ invitation.invited_date }}</td>
-                    <td><span class="job-profile-badge">{{ invitation.job_profile }}</span></td>
-                    <td>{{ invitation.job_offer }}</td>
-                    <td>{{ invitation.no_of_reminders }}</td>
-                    <td>{{ invitation.response }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="no-data">No invitations found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination">
-        <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        <div class="pagination-controls">
-            {% if page_obj.has_previous %}
-                <a href="?page=1&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">First</a>
-                <a href="?page={{ page_obj.previous_page_number }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Previous</a>
-            {% endif %}
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Last</a>
-            {% endif %}
         </div>
     </div>
-  </div>
+    <div style="margin-left: 280px;">
+        <button id="uploadBtn">Upload Company</button>
+        <div id="uploadModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:9999; max-width:600px;">
+        
+
+        <button onclick="showTab('single')">Single Upload</button>
+        <button onclick="showTab('bulk')">Bulk Upload</button>
+        <button onclick="closeModal()" style="float:right;">✖</button>
+
+
+        <div id="singleUploadTab" style="display:none; margin-top:15px;">
+            <form action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Company ID:</label><input type="text" name="company_id" required><br>
+            <label>Company Name:</label><input type="text" name="name" required><br>
+            <label>Type of Company:</label><input type="text" name="type_of_company"><br>
+            <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
+            <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
+            <label>Job Profile:</label><input type="text" name="job_profile"><br>
+            <label>Job Offer:</label><input type="text" name="job_offer"><br>
+            <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
+            <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
+            <label>HR Contact Email:</label><input type="text" name="hr_contact_email"><br>
+            <label>HR Contact Phone Number:</label><input type="text" name="hr_contact_phno"><br>
+            <label>HR Contact Alternate:</label><input type="text" name="hr_contact_alternate"><br>
+            <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
+            <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
+            <button type="submit">Submit Single Upload</button>
+            </form>
+        </div>
+
+
+        <div id="bulkUploadTab" style="display:none; margin-top:15px;">
+            <form action="{% url 'upload_company_details_bulk' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Select CSV/Excel File:</label>
+            <input type="file" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required><br><br>
+            <button type="submit">Submit Bulk Upload</button>
+            </form>
+            <p>Download template file: <a href="{% url 'download_company_table_template' %}" target="_blank">Click here</a></p>
+        </div>
+        </div>
+        <div id="company-details"></div>
+    </div>
+
+
+
+  
+
+  
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script src="{% static 'js/company_search.js' %}"></script>
+
 </body>
 </html>

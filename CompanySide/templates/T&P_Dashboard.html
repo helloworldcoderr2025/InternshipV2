@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +7,8 @@
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
 </head>
 <body>
+
+  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
       <h2>T&P Portal</h2>
@@ -17,13 +18,15 @@
       <ul>
         <li><a href="#">Dashboard</a></li>
         <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-        <li><a href="{% url 'company_search' %}">Search Companies</a></li>
+        <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
         <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-        <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
-        <li><a href="{% url 'company_invitations_portal' %}">Invitations to Companies</a></li>
+        <li><a href="{% url 'company_data_portal' %}">Company Data Portal</a></li>
+        <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
       </ul>
     </nav>
   </div>
+
+  <!-- Main Content -->
   <div class="main-content">
     <div class="dashboard-header">
       <div class="header-content">
@@ -32,61 +35,86 @@
       </div>
       <span class="academic-year-badge">Academic Year 2024-25</span>
     </div>
+
+    <div class="company-count">
+        <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
+        <div><strong>Pending Invitations: </strong> {{ pending_invitations }}</div>
+      </div>
     <div class="companies-section">
       <div class="section-header">
-        <h2>Companies Willing to Come to Campus</h2>
+        <h2>Upcoming Visits</h2>
       </div>
+
+      
+
+      <!-- Filter Form -->
       <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
         <div class="filter-group">
-          <label for="invited_date">Filter by Invited Date:</label>
-          <input type="date" name="invited_date" value="{{ selected_date }}">
-        </div>
-        <div class="filter-group">
           <label for="sort_by">Sort by:</label>
-          <select name="sort_by">
+          <select name="sort_by" id="sort_by">
             <option value="company__name" {% if sort_by == 'company__name' %}selected{% endif %}>Company Name</option>
             <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
             <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
             <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label>Order:</label>
+          <select name="order">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending </option>
+          </select>
+        </div>
+        
         <button type="submit" class="apply-button">Apply</button>
         {% if selected_date %}
           <a href="{% url 'tpportal' %}" class="clear-filters">Clear Filters</a>
         {% endif %}
       </form>
-      <div class="company-count">
-        <strong>Total Companies Willing to Come:</strong> {{ total_count }}
-      </div>
+
+      <!-- Table of Companies -->
       {% if page_obj %}
         <div class="table-container">
           <table>
-            <tr>
-              <th>Company Name</th>
-              <th>Job Profile</th>
-              <th>Job Offer</th>
-              <th>Invited Date</th>
-              <th>Contact Email</th>
-              <th>Contact Phone</th>
-            </tr>
-            {% for invite in page_obj %}
+            <thead>
               <tr>
-                <td>{{ invite.company.name }}</td>
-                <td><span class="job-profile-badge">{{ invite.job_profile }}</span></td>
-                <td>{{ invite.job_offer }}</td>
-                <td>{{ invite.invited_date }}</td>
-                <td>
-                  {% if invite.company.hr_contact_email %}
-                    <a href="mailto:{{ invite.company.hr_contact_email }}" class="email-link">{{ invite.company.hr_contact_email }}</a>
-                  {% else %}
-                    N/A
-                  {% endif %}
-                </td>
-                <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
+                <th>Company Name</th>
+                <th>Job Profile</th>
+                <th>Job Offer</th>
+                <th>Invited Date</th>
+                <th>Contact Email</th>
+                <th>Contact Phone</th>
               </tr>
-            {% endfor %}
+            </thead>
+            <tbody>
+              {% for invite in page_obj %}
+                <tr>
+                  <td>{{ invite.company.name }}</td>
+                  <td><span class="job-profile-badge">{{ invite.job_profile }}</span></td>
+                  <td>{{ invite.job_offer }}</td>
+                  <td>{{ invite.invited_date }}
+                      {% if invite.days_status == "Today" %}
+                        <span class="badge badge-today">{{ invite.days_status }}</span>
+                      {% elif invite.days_status == "Tomorrow" %}
+                        <span class="badge badge-tomorrow">{{ invite.days_status }}</span>
+                      {% else %}
+                        <span class="badge badge-upcoming">{{ invite.days_status }}</span>
+                      {% endif %}</td>
+                  <td>
+                    {% if invite.company.hr_contact_email %}
+                      <a href="mailto:{{ invite.company.hr_contact_email }}" class="email-link">{{ invite.company.hr_contact_email }}</a>
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                  <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
         <div class="pagination">
           <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
           <div class="pagination-controls">
@@ -109,5 +137,42 @@
       {% endif %}
     </div>
   </div>
+  <style>
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #fff;
+      text-align: center;
+      min-width: 80px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      opacity:0.89;
+    }
+
+    .badge-today {
+      background: linear-gradient(to right, #ff4e50, #f4511e); /* red-orange */
+      color: #222; 
+
+    }
+
+    .badge-tomorrow {
+      background: linear-gradient(to right, #ffb347, #ffcc33); /* amber-yellow */
+      color: #222; /* slightly darker text for yellow bg */
+    }
+
+    .badge-upcoming {
+      background: linear-gradient(to right, #56ab2f, #a8e063); /* green gradient */
+      color: #222; 
+    }
+
+    .status-cell {
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+
 </body>
 </html>

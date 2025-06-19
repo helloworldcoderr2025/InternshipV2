@@ -22,7 +22,6 @@ def upload_company_details_view(request):
         type_of_company = request.POST.get('type_of_company')
         eligible_core_branch = request.POST.get('eligible_core_branch')
         eligible_non_core_branch = request.POST.get('eligible_non_core_branch')
-        type_of_job = request.POST.get('type_of_job')
         job_profile = request.POST.get('job_profile')
         job_offer = request.POST.get('job_offer')
         max_package_offered = request.POST.get('max_package_offered')
@@ -47,10 +46,9 @@ def upload_company_details_view(request):
             type_of_company=type_of_company,
             eligible_core_branch=eligible_core_branch,
             eligible_non_core_branch=eligible_non_core_branch,
-
             job_profile=job_profile,
             job_offer=job_offer,
-            max_package_offered=max_package_offered,
+            max_package_offered=float(max_package_offered),
             eligible_passouts=eligible_passouts,
             hr_contact_email=hr_contact_email,
             hr_contact_alternate=hr_contact_alternate,
@@ -81,7 +79,7 @@ def upload_company_details_bulk_view(request):
                         type_of_job=row[5],
                         job_profile=row[6],
                         job_offer=row[7],
-                        max_package_offered=row[8],
+                        max_package_offered=float(row[8]),
                         eligible_passouts=row[9],
                         hr_contact_details=row[10],
                         google_form_link=row[11],
@@ -103,7 +101,7 @@ def upload_company_details_bulk_view(request):
                         type_of_job=row[5],
                         job_profile=row[6],
                         job_offer=row[7],
-                        max_package_offered=row[8],
+                        max_package_offered=float(row[8]),
                         eligible_passouts=row[9],
                         hr_contact_details=row[10],
                         google_form_link=row[11],
@@ -395,6 +393,7 @@ def company_data_portal(request):
     filter_profile = request.GET.get('job_profile', '')
     filter_offer = request.GET.get('job_offer', '')
     sort_by = request.GET.get('sort_by', 'name')
+    sort_order = request.GET.get('sort_order','asc')
     page_number = request.GET.get('page', 1)
 
     # Start with all companies
@@ -416,7 +415,10 @@ def company_data_portal(request):
         'job_offer': 'job_offer',
         'max_package_offered': 'max_package_offered',
     }
-    companies = companies.order_by(sort_mapping.get(sort_by, 'name'))
+    sort_func = sort_mapping.get(sort_by, 'name')
+    if sort_order == 'desc':
+        sort_func = f'-{sort_func}'
+    companies = companies.order_by(sort_func)
 
     # Paginate results (10 per page)
     paginator = Paginator(companies, 10)
@@ -436,6 +438,7 @@ def company_data_portal(request):
         'filter_types': filter_types,
         'filter_profiles': filter_profiles,
         'filter_offers': filter_offers,
+        'sort_order':sort_order,
     }
 
     return render(request, 'company_data_portal.html', context)

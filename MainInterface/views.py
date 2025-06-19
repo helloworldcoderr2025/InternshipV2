@@ -19,7 +19,8 @@ import openpyxl
 from django.utils.crypto import get_random_string
 from supabase import create_client
 import urllib.parse
-
+from django.utils.timezone import now
+from datetime import datetime,timedelta
 def extract_relative_path(full_url):
     parsed = urllib.parse.urlparse(full_url)
     # Assuming bucket is 'profile-pics', path after '/profile-pics/' is what we want
@@ -986,35 +987,58 @@ def tplogin(request):
 from MainInterface.models import Company,CompanyInvitations
 from django.core.paginator import Paginator
 
-@login_required
+@login_required 
 def tpportal(request):
-    selected_date = request.GET.get('invited_date')
     sort_by = request.GET.get('sort_by', 'company__name')
+    order = request.GET.get('order', 'asc')
     page_number = request.GET.get('page', 1)
 
     invitations = CompanyInvitations.objects.select_related('company').filter(response='Willing to come to campus')
+    invitations_pending = CompanyInvitations.objects.select_related('company').filter(response='Not responded')
+    today = now().date()
+    end_date = today + timedelta(days=10)
 
-    if selected_date:
-        invitations = invitations.filter(invited_date=selected_date)
+    # Step 3: Parse invited_date (stored as "YYYY-MM-DD") and filter
+    filtered_invitations = []
+    for invite in invitations:
+        try:
+            invited_dt = datetime.strptime(invite.invited_date, "%Y-%m-%d").date()
+            if today <= invited_dt <= end_date:
+                days_left = (invited_dt - today).days
+
+                if days_left == 0:
+                    invite.days_status = "Today"
+                elif days_left == 1:
+                    invite.days_status = "Tomorrow"
+                else:
+                    invite.days_status = f"in {days_left} days"
+                invite.formatted_date = invited_dt.strftime("%d-%m-%Y")
+                filtered_invitations.append(invite)
+        except (ValueError, TypeError):
+            continue
 
     sort_mapping = {
-        'company__name': 'company__name',
-        'job_profile': 'job_profile',
-        'job_offer': 'job_offer',
-        'invited_date': 'invited_date'
+    'company__name': lambda x: x.company.name.lower(),  # sort by company name
+    'job_profile': lambda x: getattr(x, 'job_profile', '').lower(),  # sort by job profile (if exists)
+    'job_offer': lambda x: getattr(x, 'job_offer', '').lower(),  # sort by job offer (if exists)
+    'invited_date': lambda x: datetime.strptime(x.invited_date, "%Y-%m-%d")  # sort by invited_date (parsed to date)
     }
 
-    sort_field = sort_mapping.get(sort_by, 'company__name')
-    invitations = invitations.order_by(sort_field)
+    # Default to company name
+    sort_func = sort_mapping.get(sort_by, lambda x: x.company.name.lower())
 
-    paginator = Paginator(invitations, 10)
+    # Apply sorting
+    filtered_invitations.sort(key=sort_func, reverse=(order == 'desc'))
+
+
+    paginator = Paginator(filtered_invitations, 10)
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'T&P_Dashboard.html', {
         'page_obj': page_obj,
-        'selected_date': selected_date,
         'sort_by': sort_by,
         'total_count': invitations.count(),
+        'pending_invitations':invitations_pending.count(),
     })
 
 
