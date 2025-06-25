@@ -77,7 +77,7 @@ class Company(models.Model):
     eligible_core_branch = models.TextField(blank=True, null=True)
     job_profile = models.TextField()
     job_offer = models.TextField()
-    max_package_offered = models.TextField(blank=True, null=True)
+    max_package_offered = models.FloatField(blank=True, null=True)
     eligible_passouts = models.TextField(blank=True, null=True)
     hr_contact_email = models.TextField(blank=True, null=True)
     google_form_link = models.TextField(blank=True, null=True)
@@ -85,6 +85,8 @@ class Company(models.Model):
     eligible_non_core_branch = models.TextField(blank=True, null=True)
     hr_contact_phno = models.TextField(blank=True, null=True)
     hr_contact_alternate = models.TextField(blank=True, null=True)
+    company_email = models.TextField(blank=True, null=True)
+    last_visited_year = models.TextField()
 
     class Meta:
         managed = False
@@ -213,10 +215,11 @@ class Placements(models.Model):
 
 class Registrations(models.Model):
     registered_id = models.TextField(primary_key=True)
-    rollnumber = models.TextField(blank=True, null=True)
-    company_id = models.TextField(blank=True, null=True)
+    rollnumber = models.ForeignKey('Student', models.DO_NOTHING, db_column='rollnumber')
+    company_id = models.TextField()
     level = models.TextField(blank=True, null=True)
     status = models.TextField(blank=True, null=True)
+    result = models.TextField(blank=True, null=True)  # This field type is a guess.
 
     class Meta:
         managed = False
@@ -246,5 +249,3 @@ class Student(models.Model):
     class Meta:
         managed = False
         db_table = 'student'
-
-

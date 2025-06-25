@@ -15,32 +15,42 @@
     </script>
 </head>
 <body>
-  <div class="sidebar">
+<div class="sidebar">
     <div class="sidebar-header">
-      <h2>T&P Portal</h2>
-      <p>Admin Dashboard</p>
+        <h2>T&P Portal</h2>
+        <p>Admin Dashboard</p>
     </div>
     <nav>
-      <ul>
-        <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
-        <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-        <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
-        <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-        <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
-        <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
-      </ul>
+        <ul>
+            <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
+            <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
+            <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
+            <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
+            <li><a href="{% url 'company_data_portal' %}">Company Data Portal</a></li>
+            <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
+        </ul>
     </nav>
-  </div>
+</div>
 
-  <div class="company-invitations-portal-layout">
+<div class="company-invitations-portal-layout">
     <h1 class="company-invitations-portal-header">Company Invitations Portal</h1>
     <a href="{% url 'tpportal' %}" class="company-invitations-back-link">← Back</a>
 
-    <!-- Filter & Sort Form -->
     <form method="get" action="{% url 'company_invitations_portal' %}" class="company-invitations-filters">
+        <!-- Invitation Status -->
         <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Job Profile:</label>
-            <select name="job_profile" class="company-invitations-filter-select select2">
+            <label>Invitation Status:</label>
+            <select name="invited_status" class="company-invitations-filter-select select2">
+                <option value="all" {% if invited_status == 'all' %}selected{% endif %}>All</option>
+                <option value="invited" {% if invited_status == 'invited' %}selected{% endif %}>Only Invited</option>
+                <option value="not_invited" {% if invited_status == 'not_invited' %}selected{% endif %}>Only Not Invited</option>
+            </select>
+        </div>
+
+        <!-- Filters -->
+        <div class="company-invitations-filter-group">
+            <label>Job Profile:</label>
+            <select name="job_profile" class="company-invitations-filter-select select2" multiple>
                 <option value="">All</option>
                 {% for profile in profiles %}
                     <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
@@ -49,8 +59,8 @@
         </div>
 
         <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Job Offer:</label>
-            <select name="job_offer" class="company-invitations-filter-select select2">
+            <label>Job Offer:</label>
+            <select name="job_offer" class="company-invitations-filter-select select2" multiple>
                 <option value="">All</option>
                 {% for offer in offers %}
                     <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
@@ -59,8 +69,8 @@
         </div>
 
         <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Response:</label>
-            <select name="response" class="company-invitations-filter-select select2">
+            <label>Response:</label>
+            <select name="response" class="company-invitations-filter-select select2" multiple>
                 <option value="">All</option>
                 {% for r in responses %}
                     <option value="{{ r }}" {% if filter_response == r %}selected{% endif %}>{{ r }}</option>
@@ -69,7 +79,27 @@
         </div>
 
         <div class="company-invitations-filter-group">
-            <label class="company-invitations-filter-label">Sort by:</label>
+            <label>Company Name:</label>
+            <select name="company_name" class="company-invitations-filter-select select2" multiple>
+                <option value="">All</option>
+                {% for name in company_names %}
+                    <option value="{{ name }}" {% if filter_name == name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="company-invitations-filter-group">
+            <label>Type of Company:</label>
+            <select name="type_of_company" class="company-invitations-filter-select select2" multiple>
+                <option value="">All</option>
+                {% for type in company_types %}
+                    <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="company-invitations-filter-group">
+            <label>Sort by:</label>
             <select name="sort_by" class="company-invitations-filter-select select2">
                 <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
                 <option value="company" {% if sort_by == 'company' %}selected{% endif %}>Company Name</option>
@@ -83,32 +113,41 @@
         <button type="submit" class="company-invitations-apply-button">Apply</button>
     </form>
 
-    <!-- Invitations Table -->
+    <!-- Table -->
     <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th>Company Name</th>
-                    <th>Invited Date</th>
                     <th>Job Profile</th>
                     <th>Job Offer</th>
+                    <th>Invited Date</th>
                     <th>No. of Reminders</th>
                     <th>Response</th>
                 </tr>
             </thead>
             <tbody>
-                {% for invitation in page_obj %}
+            {% for invitation in page_obj %}
+                {% if invitation.company %}
                 <tr>
                     <td>{{ invitation.company.name }}</td>
-                    <td>{{ invitation.invited_date }}</td>
-                    <td><span class="job-profile-badge">{{ invitation.job_profile }}</span></td>
+                    <td>{{ invitation.job_profile }}</td>
                     <td>{{ invitation.job_offer }}</td>
+                    <td>{{ invitation.invited_date }}</td>
                     <td>{{ invitation.no_of_reminders }}</td>
                     <td>{{ invitation.response }}</td>
                 </tr>
-                {% empty %}
-                <tr><td colspan="6" class="no-data">No invitations found.</td></tr>
-                {% endfor %}
+                {% else %}
+                <tr class="not-invited-row">
+                    <td>{{ invitation.name }}</td>
+                    <td>{{ invitation.job_profile }}</td>
+                    <td>{{ invitation.job_offer }}</td>
+                    <td colspan="3" style="text-align: center;"><span style="color: red;">Not Invited</span></td>
+                </tr>
+                {% endif %}
+            {% empty %}
+                <tr><td colspan="6" class="no-data">No records found.</td></tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
@@ -117,16 +156,54 @@
     <div class="pagination">
         <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         <div class="pagination-controls">
+
             {% if page_obj.has_previous %}
-                <a href="?page=1&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">First</a>
-                <a href="?page={{ page_obj.previous_page_number }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Previous</a>
+                <a href="?page=1
+                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
+                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
+                    {% for val in filter_response %}&response={{ val }}{% endfor %}
+                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
+                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
+                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
+                    First
+                </a>
+
+                <a href="?page={{ page_obj.previous_page_number }}
+                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
+                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
+                    {% for val in filter_response %}&response={{ val }}{% endfor %}
+                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
+                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
+                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
+                    Previous
+                </a>
             {% endif %}
+
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}&job_profile={{ filter_profile }}&job_offer={{ filter_offer }}&response={{ filter_response }}&sort_by={{ sort_by }}">Last</a>
+                <a href="?page={{ page_obj.next_page_number }}
+                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
+                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
+                    {% for val in filter_response %}&response={{ val }}{% endfor %}
+                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
+                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
+                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
+                    Next
+                </a>
+
+                <a href="?page={{ page_obj.paginator.num_pages }}
+                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
+                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
+                    {% for val in filter_response %}&response={{ val }}{% endfor %}
+                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
+                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
+                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
+                    Last
+                </a>
             {% endif %}
+            
         </div>
     </div>
-  </div>
+
+</div>
 </body>
 </html>

@@ -38,34 +38,66 @@
 
     <!-- Combined Filter + Sort Form -->
     <form method="get" action="{% url 'company_data_portal' %}" class="company-data-filters">
+
         <div class="company-data-filter-group">
-            <label for="type_of_company" class="company-data-filter-label">Type of Company:</label>
-            <select name="type_of_company" class="company-data-filter-select select2">
-                <option value="">All</option>
-                {% for type in filter_types %}
-                    <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+            <label for="company_name" class="company-data-filter-label">Company Name:</label>
+            <select name="company_name" class="company-data-filter-select select2" multiple>
+                {% for name in filter_names %}
+                    <option value="{{ name }}" {% if filter_name == name %}selected{% endif %}>{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div class="company-data-filter-group">
-            <label for="job_profile" class="company-data-filter-label">Job Profile:</label>
-            <select name="job_profile" class="company-data-filter-select select2">
-                <option value="">All</option>
-                {% for profile in filter_profiles %}
-                    <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
-                {% endfor %}
-            </select>
+        <label for="type_of_company">Type of Company:</label>
+        <select name="type_of_company" class="company-data-filter-select select2" multiple>
+            {% for type in filter_types %}
+            <option value="{{ type }}" {% if type in filter_type %}selected{% endif %}>{{ type }}</option>
+            {% endfor %}
+        </select>
         </div>
 
         <div class="company-data-filter-group">
-            <label for="job_offer" class="company-data-filter-label">Job Offer:</label>
-            <select name="job_offer" class="company-data-filter-select select2">
-                <option value="">All</option>
-                {% for offer in filter_offers %}
-                    <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
-                {% endfor %}
-            </select>
+        <label for="job_profile">Job Profile:</label>
+        <select name="job_profile" class="company-data-filter-select select2" multiple>
+            {% for profile in filter_profiles %}
+            <option value="{{ profile }}" {% if profile in filter_profile %}selected{% endif %}>{{ profile }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <div class="company-data-filter-group">
+        <label for="job_offer">Job Offer:</label>
+        <select name="job_offer" class="company-data-filter-select select2" multiple>
+            {% for offer in filter_offers %}
+            <option value="{{ offer }}" {% if offer in filter_offer %}selected{% endif %}>{{ offer }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <!-- Package Range Filter -->
+        <div class="company-data-filter-group">
+        <label>Max Package Offered:</label>
+        <input type="number" name="min_package" placeholder="Min" value="{{ min_package }}">
+        <input type="number" name="max_package" placeholder="Max" value="{{ max_package }}">
+        </div>
+        
+        <div class="company-data-filter-group">
+        <label for="core_branch" class="company-data-filter-label">Core Branch(es):</label>
+        <select name="core_branch" class="company-data-filter-select select2" multiple>
+            {% for branch in branch_list %}
+            <option value="{{ branch }}" {% if branch in selected_core %}selected{% endif %}>{{ branch }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <div class="company-data-filter-group">
+        <label for="non_core_branch" class="company-data-filter-label">Non-Core Branch(es):</label>
+        <select name="non_core_branch" class="company-data-filter-select select2" multiple>
+            {% for branch in branch_list %}
+            <option value="{{ branch }}" {% if branch in selected_non_core %}selected{% endif %}>{{ branch }}</option>
+            {% endfor %}
+        </select>
         </div>
 
         <div class="company-data-filter-group">
@@ -100,6 +132,8 @@
                     <th>Job Profile</th>
                     <th>Job Offer</th>
                     <th>Max Package Offered</th>
+                    <th>Core Branch</th>
+                    <th>Non-Core Branch</th>
                     <th>HR Contact Email</th>
                     <th>HR Contact Phone</th>
                 </tr>
@@ -112,6 +146,8 @@
                     <td><span class="job-profile-badge">{{ company.job_profile }}</span></td>
                     <td>{{ company.job_offer }}</td>
                     <td>{{ company.max_package_offered }}</td>
+                    <td>{{ company.eligible_core_branch|default:"-" }}</td>
+                    <td>{{ company.eligible_non_core_branch|default:"-" }}</td>
                     <td>
                       {% if company.hr_contact_email %}
                         <a href="mailto:{{ company.hr_contact_email }}" class="email-link">{{ company.hr_contact_email }}</a>

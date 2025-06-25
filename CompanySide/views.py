@@ -296,7 +296,7 @@ def send_email_view(request):
             # Send email
             send_custom_email(
                 subject="TNP Invitation",
-                to_email=company.hr_contact_email,
+                to_email=company.company_email,
                 body=email_body
             )
             return JsonResponse({'status': 'invitation_sent'})
@@ -310,7 +310,7 @@ def send_email_view(request):
 
                 send_custom_email(
                     subject="TNP Reminder",
-                    to_email=company.hr_contact_email,
+                    to_email=company.company_email,
                     body=email_body
                 )
                 return JsonResponse({'status': 'reminder_sent'})
@@ -388,26 +388,48 @@ def update_response_view(request):
 
 
 def company_data_portal(request):
-    # Get filter and sort parameters (defaults to blank or 'name')
-    filter_type = request.GET.get('type_of_company', '')
-    filter_profile = request.GET.get('job_profile', '')
-    filter_offer = request.GET.get('job_offer', '')
+    branch_list = ['CSE', 'ECE', 'EEE', 'ME', 'CIV', 'CHE', 'MME', 'BT']
+
+    # Get filters
+    filter_name = request.GET.getlist('company_name', '')
+    filter_type = request.GET.getlist('type_of_company')
+    filter_profile = request.GET.getlist('job_profile')
+    filter_offer = request.GET.getlist('job_offer')
+    selected_core = request.GET.getlist('core_branch')
+    selected_non_core = request.GET.getlist('non_core_branch')
     sort_by = request.GET.get('sort_by', 'name')
-    sort_order = request.GET.get('sort_order','asc')
+    sort_order = request.GET.get('sort_order', 'asc')
     page_number = request.GET.get('page', 1)
 
-    # Start with all companies
+    min_package = request.GET.get('min_package')
+    max_package = request.GET.get('max_package')
+
     companies = Company.objects.all()
 
-    # Apply filters only if specified
+    # Apply filters
+    if filter_name:
+        companies = companies.filter(name__in=filter_name)
     if filter_type:
-        companies = companies.filter(type_of_company=filter_type)
+        companies = companies.filter(type_of_company__in=filter_type)
     if filter_profile:
-        companies = companies.filter(job_profile=filter_profile)
+        companies = companies.filter(job_profile__in=filter_profile)
     if filter_offer:
-        companies = companies.filter(job_offer=filter_offer)
+        companies = companies.filter(job_offer__in=filter_offer)
 
-    # Apply sorting
+    if selected_core:
+        for branch in selected_core:
+            companies = companies.filter(eligible_core_branch__icontains=branch)
+
+    if selected_non_core:
+        for branch in selected_non_core:
+            companies = companies.filter(eligible_non_core_branch__icontains=branch)
+
+    if min_package:
+        companies = companies.filter(max_package_offered__gte=float(min_package))
+    if max_package:
+        companies = companies.filter(max_package_offered__lte=float(max_package))
+
+    # Sorting
     sort_mapping = {
         'name': 'name',
         'type_of_company': 'type_of_company',
@@ -420,25 +442,33 @@ def company_data_portal(request):
         sort_func = f'-{sort_func}'
     companies = companies.order_by(sort_func)
 
-    # Paginate results (10 per page)
+    # Pagination
     paginator = Paginator(companies, 10)
     page_obj = paginator.get_page(page_number)
 
-    # Get distinct filter options
+    # For dropdown values
+    filter_names = Company.objects.values_list('name', flat=True).distinct()
     filter_types = Company.objects.values_list('type_of_company', flat=True).distinct()
     filter_profiles = Company.objects.values_list('job_profile', flat=True).distinct()
     filter_offers = Company.objects.values_list('job_offer', flat=True).distinct()
 
     context = {
         'page_obj': page_obj,
+        'filter_name': filter_name,
         'filter_type': filter_type,
         'filter_profile': filter_profile,
         'filter_offer': filter_offer,
         'sort_by': sort_by,
+        'sort_order': sort_order,
+        'branch_list': branch_list,
+        'selected_core': selected_core,
+        'selected_non_core': selected_non_core,
+        'min_package': min_package,
+        'max_package': max_package,
+        'filter_names': filter_names,
         'filter_types': filter_types,
         'filter_profiles': filter_profiles,
         'filter_offers': filter_offers,
-        'sort_order':sort_order,
     }
 
     return render(request, 'company_data_portal.html', context)
@@ -446,27 +476,21 @@ def company_data_portal(request):
 
 
 from django.core.paginator import Paginator
-
-
 def company_invitations_portal(request):
-    # GET parameters
-    filter_profile = request.GET.get('job_profile', '')
-    filter_offer = request.GET.get('job_offer', '')
-    filter_response = request.GET.get('response', '')
-    sort_by = request.GET.get('sort_by', 'invited_date')
+    # Get request filters
+    invited_status = request.GET.get('invited_status', 'all')
     page_number = request.GET.get('page', 1)
+    sort_by = request.GET.get('sort_by', 'invited_date')
 
-    invitations = CompanyInvitations.objects.select_related('company').all()
+    # Other filters
+    filter_profile = request.GET.getlist('job_profile')
+    filter_offer = request.GET.getlist('job_offer')
+    filter_response = request.GET.getlist('response')
+    filter_name = request.GET.getlist('company_name')
+    filter_type = request.GET.getlist('type_of_company')
 
-    # Apply filters
-    if filter_profile:
-        invitations = invitations.filter(job_profile=filter_profile)
-    if filter_offer:
-        invitations = invitations.filter(job_offer=filter_offer)
-    if filter_response:
-        invitations = invitations.filter(response=filter_response)
 
-    # Sort mapping
+    # Mapping for ordering
     sort_mapping = {
         'company': 'company__name',
         'invited_date': 'invited_date',
@@ -475,27 +499,70 @@ def company_invitations_portal(request):
         'response': 'response',
         'no_of_reminders': 'no_of_reminders',
     }
-    invitations = invitations.order_by(sort_mapping.get(sort_by, 'invited_date'))
 
-    # Pagination
-    paginator = Paginator(invitations, 10)
+    # === Step 1: Base Querysets ===
+    invited_qs = CompanyInvitations.objects.select_related('company')
+    not_invited_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
+    not_invited_qs = Company.objects.exclude(company_id__in=not_invited_ids)
+
+    # === Step 2: Apply filters ===
+
+    # Apply invited filters
+    if filter_profile:
+        invited_qs = invited_qs.filter(job_profile__in=filter_profile)
+    if filter_offer:
+        invited_qs = invited_qs.filter(job_offer__in=filter_offer)
+    if filter_response:
+        invited_qs = invited_qs.filter(response__in=filter_response)
+    if filter_name:
+        invited_qs = invited_qs.filter(company__name__in=filter_name)
+        not_invited_qs = not_invited_qs.filter(name__in=filter_name)
+    if filter_type:
+        invited_qs = invited_qs.filter(company__type_of_company__in=filter_type)
+        not_invited_qs = not_invited_qs.filter(type_of_company__in=filter_type)
+
+
+    # === Step 3: Apply sorting (only to invited_qs) ===
+    if sort_by in sort_mapping:
+        invited_qs = invited_qs.order_by(sort_mapping[sort_by])
+    else:
+        invited_qs = invited_qs.order_by('invited_date')
+
+    # === Step 4: Decide final dataset ===
+    if invited_status == 'invited':
+        data = invited_qs
+        data_type = 'invited'
+    elif invited_status == 'not_invited':
+        data = not_invited_qs
+        data_type = 'not_invited'
+    else:  # all
+        data = list(invited_qs) + list(not_invited_qs)
+        data_type = 'mixed'
+
+    # === Step 5: Pagination ===
+    paginator = Paginator(data, 10)
     page_obj = paginator.get_page(page_number)
 
-    # Distinct filter values
+    # === Step 6: Dropdown values ===
     profiles = CompanyInvitations.objects.values_list('job_profile', flat=True).distinct()
     offers = CompanyInvitations.objects.values_list('job_offer', flat=True).distinct()
     responses = CompanyInvitations.objects.values_list('response', flat=True).distinct()
+    company_names = Company.objects.values_list('name', flat=True).distinct()
+    company_types = Company.objects.values_list('type_of_company', flat=True).distinct()
 
-    context = {
+    return render(request, 'company_invitations_portal.html', {
         'page_obj': page_obj,
+        'invited_status': invited_status,
+        'data_type': data_type,
         'filter_profile': filter_profile,
         'filter_offer': filter_offer,
         'filter_response': filter_response,
+        'filter_name': filter_name,
+        'filter_type': filter_type,
         'sort_by': sort_by,
         'profiles': profiles,
         'offers': offers,
         'responses': responses,
-    }
-
-    return render(request, 'company_invitations_portal.html', context)
-
+        'company_names': company_names,
+        'company_types': company_types,
+    })

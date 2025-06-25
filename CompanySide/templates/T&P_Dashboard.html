@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <title>T&P Dashboard</title>
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
 
@@ -113,6 +116,90 @@
             </tbody>
           </table>
         </div>
+        <!-- Placement Statistics Section -->
+        <div class="statistics-section">
+          <div class="section-header">
+            <h2>Branch-wise Placement Statistics</h2>
+          </div>
+
+          <!-- Filter by Year -->
+          <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
+            <label for="academic_year">Select Academic Year:</label>
+            <select name="academic_year" id="academic_year">
+              <option value="">All Years</option>
+              {% for year in academic_years %}
+                <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit">Show</button>
+          </form>
+
+          <!-- Chart Container -->
+          <canvas id="branchPieChart" width="300" height="300"></canvas>
+        </div>
+
+        <script>
+          // Register the DataLabels plugin globally
+          Chart.register(ChartDataLabels);
+
+          const ctx = document.getElementById('branchPieChart').getContext('2d');
+          const branchPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: {{ branch_labels|safe }},
+              datasets: [{
+                label: 'Students Placed',
+                data: {{ branch_data|safe }},
+                backgroundColor: [
+                  '#4CAF50', '#FFC107', '#2196F3', '#FF5722',
+                  '#9C27B0', '#00BCD4', '#8BC34A', '#E91E63'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                datalabels: {
+                  formatter: function(value, context) {
+                    const label = context.chart.data.labels[context.dataIndex];
+                    if(value>0) return (label + '\n(' + value + ')');
+                    else return "";
+                  },
+                  color: '#00ff6',
+                  font: {
+                    weight: 'bold',
+                    size: 16
+                  }
+                },
+                legend: {
+                  position: 'right'
+                },
+                title: {
+                  display: true,
+                  text: 'Students Placed Branch-wise'
+                }
+              }
+            },
+            plugins: [ChartDataLabels] 
+          });
+        </script>
+
+
+        <style>
+          .statistics-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f5f7fa;
+            border-radius: 10px;
+          }
+          #branchPieChart {
+            max-width: 500px;
+            margin: auto;
+          }
+        </style>
+
 
         <!-- Pagination -->
         <div class="pagination">
