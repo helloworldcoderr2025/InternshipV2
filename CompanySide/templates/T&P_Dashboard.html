@@ -3,263 +3,257 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>T&P Dashboard</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}T&P Dashboard{% endblock %}</title>
   <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  {% block css %}{% endblock css %}
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>T&P Portal</h2>
-      <p>Admin Dashboard</p>
+  <!-- Top Navigation Header (from friend's version) -->
+  <div class="top-navigation-header">
+    <div class="main-dashboard-title">
+      <h1>T&P Dashboard</h1>
     </div>
-    <nav>
-      <ul>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-        <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
-        <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-        <li><a href="{% url 'company_data_portal' %}">Company Data Portal</a></li>
-        <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
-      </ul>
-    </nav>
-  </div>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <div class="dashboard-header">
-      <div class="header-content">
-        <h1>Training & Placement Dashboard</h1>
-        <p>Manage company invitations and placement activities</p>
+    <div class="navigation-menu">
+      <div class="nav-dropdown">
+        <a class="nav-dropdown-toggle">Companies</a>
+        <div class="nav-dropdown-menu">
+          <a href="{% url 'company_search' %}" class="nav-dropdown-item">Search Companies</a>
+          <a href="{% url 'company_data_portal' %}" class="nav-dropdown-item">Company Data Portal</a>
+        </div>
       </div>
-      <span class="academic-year-badge">Academic Year 2024-25</span>
+      <div class="nav-dropdown">
+        <a class="nav-dropdown-toggle">Invitations</a>
+        <div class="nav-dropdown-menu">
+          <a href="{% url 'company_invitations_portal' %}" class="nav-dropdown-item">Companies Invitations Data Portal</a>
+          <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item {% if page == 'invitation_status' %}active{% endif %}">Check & Send Invitation Status</a>
+          <a href="{% url 'update_response' %}" class="nav-dropdown-item">Update Invitation Response</a>
+        </div>
+      </div>
+      <a href="{% url 'tpportal' %}" class="nav-menu-item {% if section == 'dashboard' %}active{% endif %}">T&amp;P Dashboard</a>
     </div>
+  </div>
+  
+  {% block content %}
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="dashboard-header">
+        <div class="header-content">
+          <h1>Training & Placement Dashboard</h1>
+          <p>Manage company invitations and placement activities</p>
+        </div>
+        <span class="academic-year-badge">Academic Year 2024-25</span>
+      </div>
 
-    <div class="company-count">
+      <div class="company-count">
         <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
         <div><strong>Pending Invitations: </strong> {{ pending_invitations }}</div>
       </div>
-    <div class="companies-section">
-      <div class="section-header">
-        <h2>Upcoming Visits</h2>
-      </div>
 
-      
-
-      <!-- Filter Form -->
-      <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
-        <div class="filter-group">
-          <label for="sort_by">Sort by:</label>
-          <select name="sort_by" id="sort_by">
-            <option value="company__name" {% if sort_by == 'company__name' %}selected{% endif %}>Company Name</option>
-            <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
-            <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
-            <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
-          </select>
+      <div class="companies-section">
+        <div class="section-header">
+          <h2>Upcoming Visits</h2>
         </div>
-        <div class="filter-group">
-          <label>Order:</label>
-          <select name="order">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending </option>
-          </select>
-        </div>
-        
-        <button type="submit" class="apply-button">Apply</button>
-        {% if selected_date %}
-          <a href="{% url 'tpportal' %}" class="clear-filters">Clear Filters</a>
-        {% endif %}
-      </form>
 
-      <!-- Table of Companies -->
-      {% if page_obj %}
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Company Name</th>
-                <th>Job Profile</th>
-                <th>Job Offer</th>
-                <th>Invited Date</th>
-                <th>Contact Email</th>
-                <th>Contact Phone</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for invite in page_obj %}
+        <!-- Filter Form -->
+        <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
+          <div class="filter-group">
+            <label for="sort_by">Sort by:</label>
+            <select name="sort_by" id="sort_by">
+              <option value="company__name" {% if sort_by == 'company__name' %}selected{% endif %}>Company Name</option>
+              <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
+              <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
+              <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Order:</label>
+            <select name="order">
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+          <button type="submit" class="apply-button">Apply</button>
+          {% if selected_date %}
+            <a href="{% url 'tpportal' %}" class="clear-filters">Clear Filters</a>
+          {% endif %}
+        </form>
+
+        <!-- Table of Companies -->
+        {% if page_obj %}
+          <div class="table-container">
+            <table>
+              <thead>
                 <tr>
-                  <td>{{ invite.company.name }}</td>
-                  <td><span class="job-profile-badge">{{ invite.job_profile }}</span></td>
-                  <td>{{ invite.job_offer }}</td>
-                  <td>{{ invite.invited_date }}
+                  <th>Company Name</th>
+                  <th>Job Profile</th>
+                  <th>Job Offer</th>
+                  <th>Invited Date</th>
+                  <th>Contact Email</th>
+                  <th>Contact Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for invite in page_obj %}
+                  <tr>
+                    <td>{{ invite.company.name }}</td>
+                    <td><span class="job-profile-badge">{{ invite.job_profile }}</span></td>
+                    <td>{{ invite.job_offer }}</td>
+                    <td>
+                      {{ invite.invited_date }}
                       {% if invite.days_status == "Today" %}
                         <span class="badge badge-today">{{ invite.days_status }}</span>
                       {% elif invite.days_status == "Tomorrow" %}
                         <span class="badge badge-tomorrow">{{ invite.days_status }}</span>
                       {% else %}
                         <span class="badge badge-upcoming">{{ invite.days_status }}</span>
-                      {% endif %}</td>
-                  <td>
-                    {% if invite.company.hr_contact_email %}
-                      <a href="mailto:{{ invite.company.hr_contact_email }}" class="email-link">{{ invite.company.hr_contact_email }}</a>
-                    {% else %}
-                      N/A
-                    {% endif %}
-                  </td>
-                  <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <!-- Placement Statistics Section -->
-        <div class="statistics-section">
-          <div class="section-header">
-            <h2>Branch-wise Placement Statistics</h2>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if invite.company.hr_contact_email %}
+                        <a href="mailto:{{ invite.company.hr_contact_email }}" class="email-link">{{ invite.company.hr_contact_email }}</a>
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </td>
+                    <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
-
-          <!-- Filter by Year -->
-          <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
-            <label for="academic_year">Select Academic Year:</label>
-            <select name="academic_year" id="academic_year">
-              <option value="">All Years</option>
-              {% for year in academic_years %}
-                <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit">Show</button>
-          </form>
-
-          <!-- Chart Container -->
-          <canvas id="branchPieChart" width="300" height="300"></canvas>
+          <!-- Pagination -->
+          <div class="pagination">
+            <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="pagination-controls">
+              {% if page_obj.has_previous %}
+                <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+              {% else %}
+                <a class="disabled">Previous</a>
+              {% endif %}
+              {% if page_obj.has_next %}
+                <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+              {% else %}
+                <a class="disabled">Next</a>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          <div class="no-data">
+            No companies found with 'Willing to come to campus'.
+          </div>
+        {% endif %}
+      </div>
+      <!-- Statistics Section -->
+      <div class="statistics-section">
+        <div class="section-header">
+          <h2>Branch-wise Placement Statistics</h2>
         </div>
+        <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
+          <label for="academic_year">Select Academic Year:</label>
+          <select name="academic_year" id="academic_year">
+            <option value="">All Years</option>
+            {% for year in academic_years %}
+              <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Show</button>
+        </form>
 
-        <script>
-          // Register the DataLabels plugin globally
-          Chart.register(ChartDataLabels);
-
-          const ctx = document.getElementById('branchPieChart').getContext('2d');
-          const branchPieChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-              labels: {{ branch_labels|safe }},
-              datasets: [{
-                label: 'Students Placed',
-                data: {{ branch_data|safe }},
-                backgroundColor: [
-                  '#4CAF50', '#FFC107', '#2196F3', '#FF5722',
-                  '#9C27B0', '#00BCD4', '#8BC34A', '#E91E63'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-              }]
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                datalabels: {
-                  formatter: function(value, context) {
-                    const label = context.chart.data.labels[context.dataIndex];
-                    if(value>0) return (label + '\n(' + value + ')');
-                    else return "";
-                  },
-                  color: '#00ff6',
-                  font: {
-                    weight: 'bold',
-                    size: 16
-                  }
+        <canvas id="branchPieChart" width="300" height="300"></canvas>
+      </div>
+      <!-- Chart.js CDN -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+      <!-- Chart Script -->
+      <script>
+        Chart.register(ChartDataLabels);
+        const ctx = document.getElementById('branchPieChart').getContext('2d');
+        const branchPieChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: {{ branch_labels|safe }},
+            datasets: [{
+              label: 'Students Placed',
+              data: {{ branch_data|safe }},
+              backgroundColor: [
+                '#4CAF50', '#FFC107', '#2196F3', '#FF5722',
+                '#9C27B0', '#00BCD4', '#8BC34A', '#E91E63'
+              ],
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              datalabels: {
+                formatter: function(value, context) {
+                  const label = context.chart.data.labels[context.dataIndex];
+                  return value > 0 ? `${label} (${value})` : '';
                 },
-                legend: {
-                  position: 'right'
-                },
-                title: {
-                  display: true,
-                  text: 'Students Placed Branch-wise'
+                color: '#00ff6',
+                font: {
+                  weight: 'bold',
+                  size: 16
                 }
+              },
+              legend: { position: 'right' },
+              title: {
+                display: true,
+                text: 'Students Placed Branch-wise'
               }
-            },
-            plugins: [ChartDataLabels] 
-          });
-        </script>
+            }
+          },
+          plugins: [ChartDataLabels]
+        });
+      </script>
+      <style>
+        .badge {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 1rem;
+          font-weight: 500;
+          color: #fff;
+          text-align: center;
+          min-width: 80px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+          opacity: 0.89;
+        }
 
+        .badge-today {
+          background: linear-gradient(to right, #ff4e50, #f4511e);
+          color: #222;
+        }
 
-        <style>
-          .statistics-section {
-            margin-top: 40px;
-            padding: 20px;
-            background-color: #f5f7fa;
-            border-radius: 10px;
-          }
-          #branchPieChart {
-            max-width: 500px;
-            margin: auto;
-          }
-        </style>
+        .badge-tomorrow {
+          background: linear-gradient(to right, #ffb347, #ffcc33);
+          color: #222;
+        }
 
+        .badge-upcoming {
+          background: linear-gradient(to right, #56ab2f, #a8e063);
+          color: #222;
+        }
 
-        <!-- Pagination -->
-        <div class="pagination">
-          <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-          <div class="pagination-controls">
-            {% if page_obj.has_previous %}
-              <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-            {% else %}
-              <a class="disabled">Previous</a>
-            {% endif %}
-            {% if page_obj.has_next %}
-              <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-            {% else %}
-              <a class="disabled">Next</a>
-            {% endif %}
-          </div>
-        </div>
-      {% else %}
-        <div class="no-data">
-          No companies found with 'Willing to come to campus'.
-        </div>
-      {% endif %}
+        .statistics-section {
+          margin-top: 40px;
+          padding: 20px;
+          background-color: #f5f7fa;
+          border-radius: 10px;
+        }
+
+        #branchPieChart {
+          max-width: 500px;
+          margin: auto;
+        }
+      </style> 
     </div>
-  </div>
-  <style>
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #fff;
-      text-align: center;
-      min-width: 80px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      opacity:0.89;
-    }
+{% endblock content %}
 
-    .badge-today {
-      background: linear-gradient(to right, #ff4e50, #f4511e); /* red-orange */
-      color: #222; 
-
-    }
-
-    .badge-tomorrow {
-      background: linear-gradient(to right, #ffb347, #ffcc33); /* amber-yellow */
-      color: #222; /* slightly darker text for yellow bg */
-    }
-
-    .badge-upcoming {
-      background: linear-gradient(to right, #56ab2f, #a8e063); /* green gradient */
-      color: #222; 
-    }
-
-    .status-cell {
-      padding: 10px;
-      text-align: center;
-    }
-  </style>
-
+{% block script %}{% endblock script %}
 </body>
 </html>

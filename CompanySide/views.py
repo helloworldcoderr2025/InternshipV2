@@ -477,21 +477,17 @@ def company_data_portal(request):
 
 from django.core.paginator import Paginator
 def company_invitations_portal(request):
-    # Get request filters
-    invited_status = request.GET.get('invited_status', 'all')
+    invited_status = request.GET.get('invited_status', '')
     page_number = request.GET.get('page', 1)
     sort_by = request.GET.get('sort_by', 'invited_date')
 
-    # Other filters
     filter_profile = request.GET.getlist('job_profile')
     filter_offer = request.GET.getlist('job_offer')
     filter_response = request.GET.getlist('response')
     filter_name = request.GET.getlist('company_name')
     filter_type = request.GET.getlist('type_of_company')
 
-
-    # Mapping for ordering
-    sort_mapping = {
+    invited_sort_mapping = {
         'company': 'company__name',
         'invited_date': 'invited_date',
         'job_profile': 'job_profile',
@@ -500,50 +496,44 @@ def company_invitations_portal(request):
         'no_of_reminders': 'no_of_reminders',
     }
 
-    # === Step 1: Base Querysets ===
-    invited_qs = CompanyInvitations.objects.select_related('company')
-    not_invited_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
-    not_invited_qs = Company.objects.exclude(company_id__in=not_invited_ids)
+    not_invited_sort_mapping = {
+        'company': 'name',
+        'job_profile': 'job_profile',
+        'job_offer': 'job_offer',
+    }
 
-    # === Step 2: Apply filters ===
+    data = []  # By default, show nothing
+    data_type = None
 
-    # Apply invited filters
-    if filter_profile:
-        invited_qs = invited_qs.filter(job_profile__in=filter_profile)
-    if filter_offer:
-        invited_qs = invited_qs.filter(job_offer__in=filter_offer)
-    if filter_response:
-        invited_qs = invited_qs.filter(response__in=filter_response)
-    if filter_name:
-        invited_qs = invited_qs.filter(company__name__in=filter_name)
-        not_invited_qs = not_invited_qs.filter(name__in=filter_name)
-    if filter_type:
-        invited_qs = invited_qs.filter(company__type_of_company__in=filter_type)
-        not_invited_qs = not_invited_qs.filter(type_of_company__in=filter_type)
-
-
-    # === Step 3: Apply sorting (only to invited_qs) ===
-    if sort_by in sort_mapping:
-        invited_qs = invited_qs.order_by(sort_mapping[sort_by])
-    else:
-        invited_qs = invited_qs.order_by('invited_date')
-
-    # === Step 4: Decide final dataset ===
+    # === Fetch only if user selected a status ===
     if invited_status == 'invited':
-        data = invited_qs
+        qs = CompanyInvitations.objects.select_related('company')
+        if filter_profile:
+            qs = qs.filter(job_profile__in=filter_profile)
+        if filter_offer:
+            qs = qs.filter(job_offer__in=filter_offer)
+        if filter_response:
+            qs = qs.filter(response__in=filter_response)
+        if filter_name:
+            qs = qs.filter(company__name__in=filter_name)
+        if filter_type:
+            qs = qs.filter(company__type_of_company__in=filter_type)
+        data = qs.order_by(invited_sort_mapping.get(sort_by, 'invited_date'))
         data_type = 'invited'
-    elif invited_status == 'not_invited':
-        data = not_invited_qs
-        data_type = 'not_invited'
-    else:  # all
-        data = list(invited_qs) + list(not_invited_qs)
-        data_type = 'mixed'
 
-    # === Step 5: Pagination ===
+    elif invited_status == 'not_invited':
+        invited_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
+        qs = Company.objects.exclude(company_id__in=invited_ids)
+        if filter_name:
+            qs = qs.filter(name__in=filter_name)
+        if filter_type:
+            qs = qs.filter(type_of_company__in=filter_type)
+        data = qs.order_by(not_invited_sort_mapping.get(sort_by, 'name'))
+        data_type = 'not_invited'
+
     paginator = Paginator(data, 10)
     page_obj = paginator.get_page(page_number)
 
-    # === Step 6: Dropdown values ===
     profiles = CompanyInvitations.objects.values_list('job_profile', flat=True).distinct()
     offers = CompanyInvitations.objects.values_list('job_offer', flat=True).distinct()
     responses = CompanyInvitations.objects.values_list('response', flat=True).distinct()

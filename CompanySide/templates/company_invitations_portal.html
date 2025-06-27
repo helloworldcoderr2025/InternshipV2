@@ -1,10 +1,7 @@
+{% extends 'T&P_Dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Company Invitations Portal</title>
-    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+{% block title %}Company Invitations Porta{% endblock title %}
+{% block css %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -13,25 +10,9 @@
             $('.select2').select2();
         });
     </script>
-</head>
-<body>
-<div class="sidebar">
-    <div class="sidebar-header">
-        <h2>T&P Portal</h2>
-        <p>Admin Dashboard</p>
-    </div>
-    <nav>
-        <ul>
-            <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
-            <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-            <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
-            <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-            <li><a href="{% url 'company_data_portal' %}">Company Data Portal</a></li>
-            <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
-        </ul>
-    </nav>
-</div>
+{% endblock css %}
 
+{% block content %}
 <div class="company-invitations-portal-layout">
     <h1 class="company-invitations-portal-header">Company Invitations Portal</h1>
     <a href="{% url 'tpportal' %}" class="company-invitations-back-link">← Back</a>
@@ -40,10 +21,10 @@
         <!-- Invitation Status -->
         <div class="company-invitations-filter-group">
             <label>Invitation Status:</label>
-            <select name="invited_status" class="company-invitations-filter-select select2">
-                <option value="all" {% if invited_status == 'all' %}selected{% endif %}>All</option>
-                <option value="invited" {% if invited_status == 'invited' %}selected{% endif %}>Only Invited</option>
-                <option value="not_invited" {% if invited_status == 'not_invited' %}selected{% endif %}>Only Not Invited</option>
+            <select name="invited_status" class="company-invitations-filter-select select2" >
+                    <option value="" {% if invited_status == '' %}selected{% endif %}> Select Here</option>
+                <option value="invited" {% if invited_status == 'invited' %}selected{% endif %}>Invited</option>
+                <option value="not_invited" {% if invited_status == 'not_invited' %}selected{% endif %}>Not Invited</option>
             </select>
         </div>
 
@@ -51,9 +32,8 @@
         <div class="company-invitations-filter-group">
             <label>Job Profile:</label>
             <select name="job_profile" class="company-invitations-filter-select select2" multiple>
-                <option value="">All</option>
                 {% for profile in profiles %}
-                    <option value="{{ profile }}" {% if filter_profile == profile %}selected{% endif %}>{{ profile }}</option>
+                    <option value="{{ profile }}" {% if profile in filter_profile %}selected{% endif %}>{{ profile }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -61,9 +41,8 @@
         <div class="company-invitations-filter-group">
             <label>Job Offer:</label>
             <select name="job_offer" class="company-invitations-filter-select select2" multiple>
-                <option value="">All</option>
                 {% for offer in offers %}
-                    <option value="{{ offer }}" {% if filter_offer == offer %}selected{% endif %}>{{ offer }}</option>
+                    <option value="{{ offer }}" {% if offer in filter_offer %}selected{% endif %}>{{ offer }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -71,9 +50,8 @@
         <div class="company-invitations-filter-group">
             <label>Response:</label>
             <select name="response" class="company-invitations-filter-select select2" multiple>
-                <option value="">All</option>
                 {% for r in responses %}
-                    <option value="{{ r }}" {% if filter_response == r %}selected{% endif %}>{{ r }}</option>
+                    <option value="{{ r }}" {% if r in filter_response %}selected{% endif %}>{{ r }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -81,9 +59,8 @@
         <div class="company-invitations-filter-group">
             <label>Company Name:</label>
             <select name="company_name" class="company-invitations-filter-select select2" multiple>
-                <option value="">All</option>
                 {% for name in company_names %}
-                    <option value="{{ name }}" {% if filter_name == name %}selected{% endif %}>{{ name }}</option>
+                    <option value="{{ name }}" {% if name in filter_name %}selected{% endif %}>{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -91,9 +68,8 @@
         <div class="company-invitations-filter-group">
             <label>Type of Company:</label>
             <select name="type_of_company" class="company-invitations-filter-select select2" multiple>
-                <option value="">All</option>
                 {% for type in company_types %}
-                    <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type }}</option>
+                    <option value="{{ type }}" {% if type in filter_type %}selected{% endif %}>{{ type }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -135,7 +111,15 @@
                     <td>{{ invitation.job_offer }}</td>
                     <td>{{ invitation.invited_date }}</td>
                     <td>{{ invitation.no_of_reminders }}</td>
-                    <td>{{ invitation.response }}</td>
+                    <td>
+                    {% if invitation.response == "Willing to come to campus" %}
+                        <span class="badge badge-upcoming">{{ invitation.response }}</span>
+                      {% elif invitation.response == "Not willing to come to campus"%}
+                        <span class="badge badge-today">{{ invitation.response }}</span>
+                      {% else %}
+                        <span class="badge badge-tomorrow">{{ invitation.response }}</span>
+                    {% endif %}
+                    </td>
                 </tr>
                 {% else %}
                 <tr class="not-invited-row">
@@ -156,54 +140,19 @@
     <div class="pagination">
         <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         <div class="pagination-controls">
-
-            {% if page_obj.has_previous %}
-                <a href="?page=1
-                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
-                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
-                    {% for val in filter_response %}&response={{ val }}{% endfor %}
-                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
-                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
-                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
-                    First
-                </a>
-
-                <a href="?page={{ page_obj.previous_page_number }}
-                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
-                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
-                    {% for val in filter_response %}&response={{ val }}{% endfor %}
-                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
-                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
-                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
-                    Previous
-                </a>
-            {% endif %}
-
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}
-                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
-                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
-                    {% for val in filter_response %}&response={{ val }}{% endfor %}
-                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
-                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
-                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
-                    Next
-                </a>
-
-                <a href="?page={{ page_obj.paginator.num_pages }}
-                    {% for val in filter_profile %}&job_profile={{ val }}{% endfor %}
-                    {% for val in filter_offer %}&job_offer={{ val }}{% endfor %}
-                    {% for val in filter_response %}&response={{ val }}{% endfor %}
-                    {% for val in filter_name %}&company_name={{ val }}{% endfor %}
-                    {% for val in filter_type %}&type_of_company={{ val }}{% endfor %}
-                    &sort_by={{ sort_by }}&invited_status={{ invited_status }}">
-                    Last
-                </a>
-            {% endif %}
-            
+            {% with request.GET.urlencode as query_string %}
+                {% if page_obj.has_previous %}
+                    <a href="?page=1&{{ query_string }}">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&{{ query_string }}">Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&{{ query_string }}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&{{ query_string }}">Last</a>
+                {% endif %}
+            {% endwith %}
         </div>
     </div>
-
 </div>
-</body>
-</html>
+
+{% endblock content %}
+

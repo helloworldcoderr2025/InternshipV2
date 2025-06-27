@@ -1,5 +1,6 @@
 function getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
 }
 axios.defaults.headers.common['X-CSRFToken'] = getCSRFToken();
 $(document).ready(function () {

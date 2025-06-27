@@ -1,11 +1,10 @@
+{% extends 'T&P_Dashboard.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Company Data Portal</title>
-    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+{% block title %}Company Data Portal{% endblock title %}
+{% block css %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock css %}
+{% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
@@ -13,25 +12,8 @@
             $('.select2').select2();
         });
     </script>
-</head>
-<body>
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>T&P Portal</h2>
-      <p>Admin Dashboard</p>
-    </div>
-    <nav>
-      <ul>
-        <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
-        <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-        <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
-        <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-        <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
-        <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
-      </ul>
-    </nav>
-  </div>
-
+{% endblock script %}
+{% block content %}
   <div class="company-data-portal-layout">
     <h1 class="company-data-portal-header">Company Data Portal</h1>
     <a href="{% url 'tpportal' %}" class="company-data-back-button">← Back</a>
@@ -181,5 +163,4 @@
         </div>
     </div>
   </div>
-</body>
-</html>
+{% endblock content %}
