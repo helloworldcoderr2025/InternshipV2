@@ -4,32 +4,6 @@
 {% block title %}Update Invitation Response{% endblock title %}
 
 {% block content %}
-        <!-- Top Navigation Header -->
-    <div class="top-navigation-header">
-        <div class="main-dashboard-title">
-        <h1>T&P Dashboard</h1>
-        </div>
-        <div class="navigation-menu">
-        <div class="nav-dropdown">
-            <a class="nav-dropdown-toggle">Companies</a>
-            <div class="nav-dropdown-menu">
-            <a href="{% url 'company_search' %}" class="nav-dropdown-item">Search Companies</a>
-            <a href="{% url 'company_data_portal' %}" class="nav-dropdown-item">Company Data Portal</a>
-            </div>
-        </div>
-        <div class="nav-dropdown">
-            <a class="nav-dropdown-toggle {% if section == 'invitations' %}active{% endif %}">Invitations</a>
-            <div class="nav-dropdown-menu">
-            <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item">Manage Invitations</a>
-            <a href="{% url 'company_invitations_portal' %}" class="nav-dropdown-item">Invitations to Companies</a>
-            <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item {% if page == 'invitation_status' %}active{% endif %}">Invitation Status</a>
-            <a href="{% url 'update_response' %}" class="nav-dropdown-item {% if page == 'update_response' %}active{% endif %}">Update Invitation Response</a>
-            </div>
-        </div>
-        <a href="{% url 'tpportal' %}" class="nav-menu-item">T&P Dashboard</a>
-        </div>
-    </div>
-
     <!-- Main Layout -->
     <div class="update-response-layout">
         <h1 class="update-response-header">Update Invitation Response</h1>
