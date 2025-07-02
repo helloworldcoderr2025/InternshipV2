@@ -984,83 +984,33 @@ def tplogin(request):
             return redirect("login")
     return render(request,"tplogin.html")
 
-from MainInterface.models import Company,CompanyInvitations
+from MainInterface.models import Company,CompanyInvitations,CompanyJobprofiles
 from django.core.paginator import Paginator
 from django.db.models import Count
 
 @login_required 
 def tpportal(request):
-    sort_by = request.GET.get('sort_by', 'company__name')
-    order = request.GET.get('order', 'asc')
-    page_number = request.GET.get('page', 1)
     selected_year = request.GET.get('academic_year', '')
 
-    today = now().date()
-    end_date = today + timedelta(days=10)
+    # === 1. Counts
+    invitations = CompanyInvitations.objects.filter(response='Willing to come to campus')
+    invitations_pending = CompanyInvitations.objects.filter(response='Not responded')
 
-    # === 1. Get Invited & Pending Invitations ===
-    invitations = CompanyInvitations.objects.select_related('company').filter(response='Willing to come to campus')
-    invitations_pending = CompanyInvitations.objects.select_related('company').filter(response='Not responded')
-
-    # === 2. Filter Upcoming Visits (next 10 days) ===
-    filtered_invitations = []
-    for invite in invitations:
-        try:
-            invited_dt = datetime.strptime(invite.invited_date, "%Y-%m-%d").date()
-            if today <= invited_dt <= end_date:
-                days_left = (invited_dt - today).days
-                if days_left == 0:
-                    invite.days_status = "Today"
-                elif days_left == 1:
-                    invite.days_status = "Tomorrow"
-                else:
-                    invite.days_status = f"in {days_left} days"
-                invite.formatted_date = invited_dt.strftime("%d-%m-%Y")
-                filtered_invitations.append(invite)
-        except (ValueError, TypeError):
-            continue
-
-    # === 3. Sorting Logic ===
-    sort_mapping = {
-        'company__name': lambda x: x.company.name.lower(),
-        'job_profile': lambda x: getattr(x, 'job_profile', '').lower(),
-        'job_offer': lambda x: getattr(x, 'job_offer', '').lower(),
-        'invited_date': lambda x: datetime.strptime(x.invited_date, "%Y-%m-%d")
-    }
-    sort_func = sort_mapping.get(sort_by, sort_mapping['company__name'])
-    filtered_invitations.sort(key=sort_func, reverse=(order == 'desc'))
-
-    paginator = Paginator(filtered_invitations, 10)
-    page_obj = paginator.get_page(page_number)
-
-    # === 4. Placement Statistics for Pie Chart ===
-    # Fixed list of branches (8 total)
+    # === 2. Pie chart: branch-wise placements
     all_branches = ['CSE', 'ECE', 'EEE', 'ME', 'CE', 'CHE', 'MME', 'BT']
-
-    # Query placed students with optional year filter
     placed_regs = Registrations.objects.filter(result="placed").select_related('rollnumber')
     if selected_year:
         placed_regs = placed_regs.filter(rollnumber__academic_year=selected_year)
 
-    # Count placed students branch-wise
-    branch_stats = placed_regs.values('rollnumber__branch') \
-        .annotate(count=Count('rollnumber', distinct=True)) \
-        .order_by('rollnumber__branch')
-
-    # Create a mapping from branch -> count
+    branch_stats = placed_regs.values('rollnumber__branch').annotate(count=Count('rollnumber', distinct=True))
     branch_count_map = {entry['rollnumber__branch']: entry['count'] for entry in branch_stats}
-
-    # Ensure all 8 branches are included, defaulting to 0
     branch_labels = all_branches
     branch_data = [branch_count_map.get(branch, 0) for branch in all_branches]
 
-    # === 5. List of Academic Years ===
+    # === 3. Academic years dropdown
     academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('-academic_year')
 
     return render(request, 'T&P_Dashboard.html', {
-        'page_obj': page_obj,
-        'sort_by': sort_by,
-        'order': order,
         'total_count': invitations.count(),
         'pending_invitations': invitations_pending.count(),
         'branch_labels': json.dumps(branch_labels),
@@ -1068,8 +1018,6 @@ def tpportal(request):
         'academic_years': academic_years,
         'selected_year': selected_year,
     })
-
-
 @login_required
 def verifystudents(request):
     if request.method=="POST":

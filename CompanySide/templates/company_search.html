@@ -16,22 +16,6 @@
 
 
 {% block content %}
-  <div class="sidebar">
-      <div class="sidebar-header">
-      <h2>T&P Portal</h2>
-      <p>Admin Dashboard</p>
-      </div>
-      <nav>
-      <ul>
-          <li><a href="{% url 'tpportal' %}">Dashboard</a></li>
-          <li><a href="{% url 'check_company_invite_status' %}">Manage Invitations</a></li>
-          <li><a href="{% url 'company_search' %}">Search & Manage Company Data</a></li>
-          <li><a href="{% url 'update_response' %}">Update Invitation Response</a></li>
-          <li><a href="{% url 'company_data_portal' %}">Company data portal</a></li>
-          <li><a href="{% url 'company_invitations_portal' %}">Company Invitations Portal</a></li>
-      </ul>
-      </nav>
-  </div>
   <div class="invitation-management-layout">
           <h1> Upload Company Data</h1>
       <div class="invitation-search-section">
@@ -40,7 +24,7 @@
           <select id="companySelect" style="width: 300px;">
               <option></option> 
               {% for company in companies %}
-              <option value="{{ company.company_id }}">{{ company.name }}</option>
+              <option value="{{ company.id }}">{{ company.name }}</option>
               {% endfor %}
           </select>
       </div>
@@ -56,25 +40,29 @@
 
 
       <div id="singleUploadTab" style="display:none; margin-top:15px;">
-          <form action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
+        <form id="singleUploadForm" action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          <label>Company ID:</label><input type="text" name="company_id" required><br>
-          <label>Company Name:</label><input type="text" name="name" required><br>
+          <label>Company ID:</label>
+          <input type="text" name="company_id" id="prefilledCompanyId" readonly required><br>
+          <label>Company Name:</label>
+          <input type="text" name="name" id="prefilledCompanyName" readonly required><br><br>
+          <h4>Add New Job Profile Details</h4>
+          <label>Job Profile:</label><input type="text" name="job_profile" required><br>
           <label>Type of Company:</label><input type="text" name="type_of_company"><br>
-          <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
-          <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
-          <label>Job Profile:</label><input type="text" name="job_profile"><br>
           <label>Job Offer:</label><input type="text" name="job_offer"><br>
           <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
           <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
+          <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
+          <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
           <label>HR Contact Email:</label><input type="text" name="hr_contact_email"><br>
           <label>HR Contact Phone Number:</label><input type="text" name="hr_contact_phno"><br>
           <label>HR Contact Alternate:</label><input type="text" name="hr_contact_alternate"><br>
           <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
           <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
-          <button type="submit">Submit Single Upload</button>
-          </form>
+          <button type="submit">Submit Job Profile</button>
+        </form>
       </div>
+
 
 
       <div id="bulkUploadTab" style="display:none; margin-top:15px;">

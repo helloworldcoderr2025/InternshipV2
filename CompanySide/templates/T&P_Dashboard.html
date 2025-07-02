@@ -45,107 +45,10 @@
         </div>
         <span class="academic-year-badge">Academic Year 2024-25</span>
       </div>
-
       <div class="company-count">
         <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
         <div><strong>Pending Invitations: </strong> {{ pending_invitations }}</div>
       </div>
-
-      <div class="companies-section">
-        <div class="section-header">
-          <h2>Upcoming Visits</h2>
-        </div>
-
-        <!-- Filter Form -->
-        <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
-          <div class="filter-group">
-            <label for="sort_by">Sort by:</label>
-            <select name="sort_by" id="sort_by">
-              <option value="company__name" {% if sort_by == 'company__name' %}selected{% endif %}>Company Name</option>
-              <option value="job_profile" {% if sort_by == 'job_profile' %}selected{% endif %}>Job Profile</option>
-              <option value="job_offer" {% if sort_by == 'job_offer' %}selected{% endif %}>Job Offer</option>
-              <option value="invited_date" {% if sort_by == 'invited_date' %}selected{% endif %}>Invited Date</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Order:</label>
-            <select name="order">
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
-          </div>
-          <button type="submit" class="apply-button">Apply</button>
-          {% if selected_date %}
-            <a href="{% url 'tpportal' %}" class="clear-filters">Clear Filters</a>
-          {% endif %}
-        </form>
-
-        <!-- Table of Companies -->
-        {% if page_obj %}
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Company Name</th>
-                  <th>Job Profile</th>
-                  <th>Job Offer</th>
-                  <th>Invited Date</th>
-                  <th>Contact Email</th>
-                  <th>Contact Phone</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for invite in page_obj %}
-                  <tr>
-                    <td>{{ invite.company.name }}</td>
-                    <td><span class="job-profile-badge">{{ invite.job_profile }}</span></td>
-                    <td>{{ invite.job_offer }}</td>
-                    <td>
-                      {{ invite.invited_date }}
-                      {% if invite.days_status == "Today" %}
-                        <span class="badge badge-today">{{ invite.days_status }}</span>
-                      {% elif invite.days_status == "Tomorrow" %}
-                        <span class="badge badge-tomorrow">{{ invite.days_status }}</span>
-                      {% else %}
-                        <span class="badge badge-upcoming">{{ invite.days_status }}</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if invite.company.hr_contact_email %}
-                        <a href="mailto:{{ invite.company.hr_contact_email }}" class="email-link">{{ invite.company.hr_contact_email }}</a>
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </td>
-                    <td>{{ invite.company.hr_contact_phno|default:"N/A" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          <!-- Pagination -->
-          <div class="pagination">
-            <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            <div class="pagination-controls">
-              {% if page_obj.has_previous %}
-                <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-              {% else %}
-                <a class="disabled">Previous</a>
-              {% endif %}
-              {% if page_obj.has_next %}
-                <a href="?{% if selected_date %}invited_date={{ selected_date }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-              {% else %}
-                <a class="disabled">Next</a>
-              {% endif %}
-            </div>
-          </div>
-        {% else %}
-          <div class="no-data">
-            No companies found with 'Willing to come to campus'.
-          </div>
-        {% endif %}
-      </div>
-
       <!-- Statistics Section -->
       <div class="statistics-section">
         <div class="section-header">
@@ -281,8 +184,8 @@
     /* Responsive adjustments */
     @media (max-width: 1200px) {
       .chart-wrapper {
-        height: 550px;
-        min-height: 550px;
+        height: 600px;
+        min-height: 600px;
       }
       
       .chart-container {
@@ -322,8 +225,6 @@
       }
     }
     </style>
-  {% endblock content %}
-
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -544,7 +445,7 @@
       plugins: [RadialLabelsPlugin]
     });
   </script>
-
+  {% endblock content %}
   {% block script %}{% endblock script %}
 </body>
 </html>

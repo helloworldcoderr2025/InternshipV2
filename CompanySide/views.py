@@ -1,23 +1,26 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse,JsonResponse
-from MainInterface.models import Company,CompanyInvitations
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
-from .utils import send_custom_email
 from django.utils import timezone
-import csv,openpyxl,json
-from django.core.paginator import Paginator
-from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from urllib.parse import urlencode
+from django.core.paginator import Paginator
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+import csv, openpyxl, json
+from MainInterface.models import Company, CompanyInvitations, CompanyJobprofiles
+from .utils import send_custom_email
+from .serializers import CompanySerializer,CompanyWithProfilesSerializer,CompanyJobprofileSerializer
 
 def TNP_Dashboard_view(request):
-    return render(request,'T&P_Dashboard.html')
+    return render(request, 'T&P_Dashboard.html')
+
 
 def upload_company_details_view(request):
     if request.method == 'POST':
-        company_id = request.POST['company_id']
         name = request.POST.get('name')
         type_of_company = request.POST.get('type_of_company')
         eligible_core_branch = request.POST.get('eligible_core_branch')
@@ -31,33 +34,37 @@ def upload_company_details_view(request):
         hr_contact_alternate = request.POST.get('hr_contact_alternate')
         google_form_link = request.POST.get('google_form_link')
         brochure = request.FILES.get('brochure')
+
         brochure_path = ''
         if brochure:
-            # Save uploaded file 
             with open(f'media/brochures/{brochure.name}', 'wb+') as f:
                 for chunk in brochure.chunks():
                     f.write(chunk)
             brochure_path = f'brochures/{brochure.name}'
 
-        # Inserting the data into dbase
-        Company.objects.create(
-            company_id=company_id,
-            name=name,
+        # Create or get the company
+        company, created = Company.objects.get_or_create(name=name)
+
+        # Add job profile
+        CompanyJobprofiles.objects.create(
+            company=company,
             type_of_company=type_of_company,
             eligible_core_branch=eligible_core_branch,
             eligible_non_core_branch=eligible_non_core_branch,
             job_profile=job_profile,
             job_offer=job_offer,
-            max_package_offered=float(max_package_offered),
+            max_package_offered=float(max_package_offered or 0),
             eligible_passouts=eligible_passouts,
             hr_contact_email=hr_contact_email,
-            hr_contact_alternate=hr_contact_alternate,
             hr_contact_phno=hr_contact_phno,
+            hr_contact_alternate=hr_contact_alternate,
             google_form_link=google_form_link,
             brochure_path=brochure_path
         )
 
-        return redirect('company_search')  
+        messages.success(request, "Company & Job Profile added successfully!")
+        return redirect('company_search')
+    return render(request, 'upload_company_details.html')
 
 
 def upload_company_details_bulk_view(request):
@@ -67,43 +74,43 @@ def upload_company_details_bulk_view(request):
 
         if file_name.endswith('.csv'):
             data = csv.reader(file.read().decode('utf-8').splitlines())
-            header = next(data)  #header
+            header = next(data)
             for row in data:
                 try:
-                    Company.objects.create(
-                        company_id=row[0],
-                        name=row[1],
+                    company_name = row[1]
+                    company, created = Company.objects.get_or_create(name=company_name)
+                    CompanyJobprofiles.objects.create(
+                        company=company,
                         type_of_company=row[2],
-                        eligible_core_branch=row[3], 
-                        eligible_non_core_branch=row[4], 
-                        type_of_job=row[5],
+                        eligible_core_branch=row[3],
+                        eligible_non_core_branch=row[4],
                         job_profile=row[6],
                         job_offer=row[7],
-                        max_package_offered=float(row[8]),
+                        max_package_offered=float(row[8] or 0),
                         eligible_passouts=row[9],
-                        hr_contact_details=row[10],
+                        hr_contact_email=row[10],
                         google_form_link=row[11],
-                        brochure_path=''  
+                        brochure_path=''
                     )
                 except Exception as e:
-                    messages.error(request, f"Failed on row {row}: {e}")
-        elif file_name.endswith('.xlsx') or file_name.endswith('.xls'):
+                    messages.error(request, f"Error on row {row}: {e}")
+        elif file_name.endswith(('.xlsx', '.xls')):
             wb = openpyxl.load_workbook(file)
             sheet = wb.active
-            for row in sheet.iter_rows(min_row=2, values_only=True):  # header skipped
+            for row in sheet.iter_rows(min_row=2, values_only=True):
                 try:
-                    Company.objects.create(
-                        company_id=row[0],
-                        name=row[1],
+                    company_name = row[1]
+                    company, created = Company.objects.get_or_create(name=company_name)
+                    CompanyJobprofiles.objects.create(
+                        company=company,
                         type_of_company=row[2],
-                        eligible_core_branch=row[3], 
-                        eligible_non_core_branch=row[4], 
-                        type_of_job=row[5],
+                        eligible_core_branch=row[3],
+                        eligible_non_core_branch=row[4],
                         job_profile=row[6],
                         job_offer=row[7],
-                        max_package_offered=float(row[8]),
+                        max_package_offered=float(row[8] or 0),
                         eligible_passouts=row[9],
-                        hr_contact_details=row[10],
+                        hr_contact_email=row[10],
                         google_form_link=row[11],
                         brochure_path=''
                     )
@@ -113,28 +120,19 @@ def upload_company_details_bulk_view(request):
             messages.error(request, "Unsupported file format.")
 
         return redirect('company_search')
-
+    return render(request, 'upload_company_details_bulk.html')
 
 
 def download_company_table_template_view(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="company_template.csv"'
     writer = csv.writer(response)
-    headers = [
-        'company_id',
-        'name',
-        'type_of_company',
-        'eligible_core_branch',
-        'eligible_non_core_branch',
-        'type_of_job',
-        'job_profile',
-        'job_offer',
-        'max_package_offered',
-        'eligible_passouts',
-        'hr_contact_details',
+    writer.writerow([
+        'company_id', 'name', 'type_of_company', 'eligible_core_branch',
+        'eligible_non_core_branch', 'type_of_job', 'job_profile', 'job_offer',
+        'max_package_offered', 'eligible_passouts', 'hr_contact_details',
         'google_form_link'
-    ]
-    writer.writerow(headers)
+    ])
     return response
 
 def check_company_invite_status_view(request):
@@ -162,16 +160,10 @@ def fetching_company_invitation_status(request):
 
         return JsonResponse({'results': results})
 
-
-
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .serializers import CompanySerializer
-
-
 def company_search_page(request):
     companies = Company.objects.all().order_by('name')
     return render(request, 'company_search.html', {'companies': companies})
+
 
 @api_view(['GET'])
 def search_companies(request):
@@ -182,44 +174,80 @@ def search_companies(request):
 
 @api_view(['GET'])
 def get_company(request, company_id):
-    company = Company.objects.get(company_id=company_id)
-    serializer = CompanySerializer(company)
+    """
+    Return single company with nested job profiles
+    """
+    company = get_object_or_404(Company, id=company_id)
+    serializer = CompanyWithProfilesSerializer(company)
     return Response(serializer.data)
 
 @api_view(['PUT'])
 def update_company(request, company_id):
-    company = Company.objects.get(company_id=company_id)
-    serializer = CompanySerializer(company, data=request.data,partial=True)
+    """
+    Update fields in Company table itself.
+    """
+    company = get_object_or_404(Company, id=company_id)
+    serializer = CompanySerializer(company, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
-    return Response(serializer.errors, status=400)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
 def delete_company(request, company_id):
-    company = Company.objects.get(company_id=company_id)
+    """
+    Delete the company record.
+    """
+    company = get_object_or_404(Company, id=company_id)
     company.delete()
-    return Response({"message": "Deleted successfully"})
+    return Response({"message": "Deleted successfully"}, status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+def update_jobprofile(request, profile_id):
+    """
+    Update fields in a specific job profile.
+    """
+    profile = get_object_or_404(CompanyJobprofiles, id=profile_id)
+    serializer = CompanyJobprofileSerializer(profile, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+def delete_jobprofile(request, profile_id):
+    """
+    Delete a specific job profile.
+    """
+    profile = get_object_or_404(CompanyJobprofiles, id=profile_id)
+    profile.delete()
+    return Response({"message": "Deleted successfully"}, status=status.HTTP_200_OK)
 
 @csrf_exempt
 def fetching_company_invitation_status_view(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        company_ids = data.get('company_ids', [])
+        try:
+            data = json.loads(request.body)
+            company_ids = data.get('company_ids', [])
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
         results = []
 
         for cid in company_ids:
             try:
-                company = Company.objects.get(company_id=cid)
+                company = Company.objects.get(id=cid)
                 invites = CompanyInvitations.objects.filter(company=company).order_by('-invited_date')
                 if invites.exists():
                     latest_invite = invites.first()
-                    reminders = latest_invite.no_of_reminders or "0"
+                    reminders = latest_invite.no_of_reminders or 0
+                    # Serialize dates safely
+                    date_list = [inv.invited_date.strftime('%Y-%m-%d') if inv.invited_date else '' for inv in invites]
                     results.append({
                         'company_id': cid,
                         'name': company.name,
                         'invited': True,
-                        'dates': [inv.invited_date for inv in invites],
+                        'dates': date_list,
                         'reminders': reminders,
                         'response_status': latest_invite.response,
                     })
@@ -229,16 +257,23 @@ def fetching_company_invitation_status_view(request):
                         'name': company.name,
                         'invited': False,
                         'dates': [],
-                        'reminders': "0",
+                        'reminders': 0,
                         'response_status': None,
                     })
             except Company.DoesNotExist:
-                continue
+                # Optional: include an entry for missing companies
+                results.append({
+                    'company_id': cid,
+                    'name': 'Unknown Company',
+                    'invited': False,
+                    'dates': [],
+                    'reminders': 0,
+                    'response_status': None,
+                })
 
         return JsonResponse({'results': results})
-    return JsonResponse({'error': 'Invalid method'}, status=405)
-
-
+    else:
+        return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @csrf_exempt
 def get_email_preview_view(request):
@@ -386,96 +421,47 @@ def update_response_view(request):
     })
 
 
-
 def company_data_portal(request):
-    branch_list = ['CSE', 'ECE', 'EEE', 'ME', 'CIV', 'CHE', 'MME', 'BT']
-
-    # Get filters
-    filter_name = request.GET.getlist('company_name', '')
     filter_type = request.GET.getlist('type_of_company')
     filter_profile = request.GET.getlist('job_profile')
     filter_offer = request.GET.getlist('job_offer')
-    selected_core = request.GET.getlist('core_branch')
-    selected_non_core = request.GET.getlist('non_core_branch')
-    sort_by = request.GET.get('sort_by', 'name')
+    filter_name = request.GET.getlist('company_name')
+    sort_by = request.GET.get('sort_by', 'company__name')
     sort_order = request.GET.get('sort_order', 'asc')
     page_number = request.GET.get('page', 1)
 
-    min_package = request.GET.get('min_package')
-    max_package = request.GET.get('max_package')
+    qs = CompanyJobprofiles.objects.select_related('company')
 
-    companies = Company.objects.all()
-
-    # Apply filters
     if filter_name:
-        companies = companies.filter(name__in=filter_name)
+        qs = qs.filter(company__name__in=filter_name)
     if filter_type:
-        companies = companies.filter(type_of_company__in=filter_type)
+        qs = qs.filter(type_of_company__in=filter_type)
     if filter_profile:
-        companies = companies.filter(job_profile__in=filter_profile)
+        qs = qs.filter(job_profile__in=filter_profile)
     if filter_offer:
-        companies = companies.filter(job_offer__in=filter_offer)
+        qs = qs.filter(job_offer__in=filter_offer)
 
-    if selected_core:
-        for branch in selected_core:
-            companies = companies.filter(eligible_core_branch__icontains=branch)
-
-    if selected_non_core:
-        for branch in selected_non_core:
-            companies = companies.filter(eligible_non_core_branch__icontains=branch)
-
-    if min_package:
-        companies = companies.filter(max_package_offered__gte=float(min_package))
-    if max_package:
-        companies = companies.filter(max_package_offered__lte=float(max_package))
-
-    # Sorting
-    sort_mapping = {
-        'name': 'name',
+    sort_map = {
+        'company__name': 'company__name',
         'type_of_company': 'type_of_company',
         'job_profile': 'job_profile',
         'job_offer': 'job_offer',
         'max_package_offered': 'max_package_offered',
     }
-    sort_func = sort_mapping.get(sort_by, 'name')
+    sort_field = sort_map.get(sort_by, 'company__name')
     if sort_order == 'desc':
-        sort_func = f'-{sort_func}'
-    companies = companies.order_by(sort_func)
+        sort_field = f'-{sort_field}'
+    qs = qs.order_by(sort_field)
 
-    # Pagination
-    paginator = Paginator(companies, 10)
+    paginator = Paginator(qs, 10)
     page_obj = paginator.get_page(page_number)
-
-    # For dropdown values
-    filter_names = Company.objects.values_list('name', flat=True).distinct()
-    filter_types = Company.objects.values_list('type_of_company', flat=True).distinct()
-    filter_profiles = Company.objects.values_list('job_profile', flat=True).distinct()
-    filter_offers = Company.objects.values_list('job_offer', flat=True).distinct()
 
     context = {
         'page_obj': page_obj,
-        'filter_name': filter_name,
-        'filter_type': filter_type,
-        'filter_profile': filter_profile,
-        'filter_offer': filter_offer,
-        'sort_by': sort_by,
-        'sort_order': sort_order,
-        'branch_list': branch_list,
-        'selected_core': selected_core,
-        'selected_non_core': selected_non_core,
-        'min_package': min_package,
-        'max_package': max_package,
-        'filter_names': filter_names,
-        'filter_types': filter_types,
-        'filter_profiles': filter_profiles,
-        'filter_offers': filter_offers,
     }
-
     return render(request, 'company_data_portal.html', context)
 
 
-
-from django.core.paginator import Paginator
 def company_invitations_portal(request):
     invited_status = request.GET.get('invited_status', '')
     page_number = request.GET.get('page', 1)
@@ -490,56 +476,65 @@ def company_invitations_portal(request):
     invited_sort_mapping = {
         'company': 'company__name',
         'invited_date': 'invited_date',
-        'job_profile': 'job_profile',
-        'job_offer': 'job_offer',
         'response': 'response',
         'no_of_reminders': 'no_of_reminders',
     }
 
     not_invited_sort_mapping = {
         'company': 'name',
-        'job_profile': 'job_profile',
-        'job_offer': 'job_offer',
     }
 
-    data = []  # By default, show nothing
+    data = []
     data_type = None
 
-    # === Fetch only if user selected a status ===
     if invited_status == 'invited':
-        qs = CompanyInvitations.objects.select_related('company')
+        qs = CompanyInvitations.objects.select_related('company') \
+            .prefetch_related('company__companyjobprofiles')
+
         if filter_profile:
-            qs = qs.filter(job_profile__in=filter_profile)
+            qs = qs.filter(company__companyjobprofiles__job_profile__in=filter_profile)
         if filter_offer:
-            qs = qs.filter(job_offer__in=filter_offer)
+            qs = qs.filter(company__companyjobprofiles__job_offer__in=filter_offer)
         if filter_response:
             qs = qs.filter(response__in=filter_response)
         if filter_name:
             qs = qs.filter(company__name__in=filter_name)
         if filter_type:
-            qs = qs.filter(company__type_of_company__in=filter_type)
-        data = qs.order_by(invited_sort_mapping.get(sort_by, 'invited_date'))
+            qs = qs.filter(company__companyjobprofiles__type_of_company__in=filter_type)
+
+        data = qs.order_by(invited_sort_mapping.get(sort_by, 'invited_date')).distinct()
         data_type = 'invited'
 
     elif invited_status == 'not_invited':
-        invited_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
-        qs = Company.objects.exclude(company_id__in=invited_ids)
+        invited_company_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
+
+        qs = Company.objects.exclude(id__in=invited_company_ids) \
+            .prefetch_related('companyjobprofiles')
+
         if filter_name:
             qs = qs.filter(name__in=filter_name)
         if filter_type:
-            qs = qs.filter(type_of_company__in=filter_type)
-        data = qs.order_by(not_invited_sort_mapping.get(sort_by, 'name'))
+            qs = qs.filter(companyjobprofiles__type_of_company__in=filter_type)
+        if filter_profile:
+            qs = qs.filter(companyjobprofiles__job_profile__in=filter_profile)
+        if filter_offer:
+            qs = qs.filter(companyjobprofiles__job_offer__in=filter_offer)
+
+        data = qs.order_by(not_invited_sort_mapping.get(sort_by, 'name')).distinct()
         data_type = 'not_invited'
 
     paginator = Paginator(data, 10)
     page_obj = paginator.get_page(page_number)
 
-    profiles = CompanyInvitations.objects.values_list('job_profile', flat=True).distinct()
-    offers = CompanyInvitations.objects.values_list('job_offer', flat=True).distinct()
+    # Filters
+    profiles = CompanyJobprofiles.objects.values_list('job_profile', flat=True).distinct()
+    offers = CompanyJobprofiles.objects.values_list('job_offer', flat=True).distinct()
     responses = CompanyInvitations.objects.values_list('response', flat=True).distinct()
     company_names = Company.objects.values_list('name', flat=True).distinct()
-    company_types = Company.objects.values_list('type_of_company', flat=True).distinct()
+    company_types = CompanyJobprofiles.objects.values_list('type_of_company', flat=True).distinct()
 
+    for item in page_obj:
+        print(item)
     return render(request, 'company_invitations_portal.html', {
         'page_obj': page_obj,
         'invited_status': invited_status,

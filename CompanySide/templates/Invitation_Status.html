@@ -2,56 +2,171 @@
 {% load static %}
 {% with section='invitations' page='invitation_status' %}
 {% block title %}Company Invitation Panel{% endblock title %}
+
 {% block css %}
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock css %}
 
 {% block content %}
-  <!-- Main Content (from your version) -->
-  <div class="invitation-management-layout">
-    <h2 class="invitation-management-header">Company Invite Management</h2>
+<div class="invitation-management-layout">
+  <h2 class="invitation-management-header">Company Invite Management</h2>
 
-    <div class="invitation-search-section">
-      <label for="companySelect" class="invitation-search-label">🔍 Search & Select Companies:</label>
-      <div class="invitation-select2-container">
-        <select id="companySelect" multiple="multiple" style="width: 100%;">
-          {% for company in companies %}
-            <option value="{{ company.company_id }}">{{ company.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-
-    <div id="inviteResults" class="invitation-results-container">
-      <div class="invitation-results-empty">Select companies to view invitation status</div>
-    </div>
-
-    <!-- Modal -->
-    <div id="overlay" class="invitation-modal-overlay"></div>
-    <div id="emailModal" class="invitation-email-modal">
-      <h3>Email Preview</h3>
-      <form id="emailForm">
-        <input type="hidden" id="modalCompanyId">
-        <input type="hidden" id="modalMode">
-
-        <div id="invitationDateGroup" style="margin-top: 10px; display: none;">
-          <label for="invitationDate">📅 Select Invitation Date:</label>
-          <input type="date" id="invitationDate" />
-        </div>
-
-        <textarea id="emailContent"></textarea>
-        <br>
-        <button type="submit">📤 Send</button>
-        <button type="button" onclick="closeModal()">❌ Cancel</button>
-      </form>
+  <div class="invitation-search-section">
+    <label for="companySelect" class="invitation-search-label">🔍 Search & Select Companies:</label>
+    <div class="invitation-select2-container">
+      <select id="companySelect" multiple="multiple" style="width: 100%;">
+        {% for company in companies %}
+          <option value="{{ company.id }}">{{ company.name }}</option>
+        {% endfor %}
+      </select>
     </div>
   </div>
+
+  <div id="inviteResults" class="invitation-results-container">
+    <div class="invitation-results-empty">Select companies to view invitation status</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="overlay" class="invitation-modal-overlay"></div>
+  <div id="emailModal" class="invitation-email-modal">
+    <h3>Email Preview</h3>
+    <form id="emailForm">
+      <input type="hidden" id="modalCompanyId">
+      <input type="hidden" id="modalMode">
+
+      <div id="invitationDateGroup" style="margin-top: 10px; display: none;">
+        <label for="invitationDate">📅 Select Invitation Date:</label>
+        <input type="date" id="invitationDate" />
+      </div>
+
+      <textarea id="emailContent"></textarea>
+      <br>
+      <button type="submit">📤 Send</button>
+      <button type="button" onclick="closeModal()">❌ Cancel</button>
+    </form>
+  </div>
+</div>
 {% endblock content %}
 
 {% block script %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="{% static 'js/Invitation_Status.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  $(document).ready(() => {
+    const select = $('#companySelect');
+    const resultBox = document.getElementById('inviteResults');
+
+    // Initialize select2
+    select.select2({
+      placeholder: "Search companies...",
+      allowClear: true
+    });
+
+    // On change, fetch statuses
+    select.on('change', async function () {
+      const selectedCompanies = $(this).val();
+      if (!selectedCompanies || selectedCompanies.length === 0) {
+        resultBox.innerHTML = '<div class="invitation-results-empty">Select companies to view invitation status</div>';
+        return;
+      }
+      try {
+        const response = await axios.post('/fetching_company_invitation_status/', {
+          company_ids: selectedCompanies
+        });
+        renderResults(response.data.results);
+      } catch (error) {
+        console.error("Error fetching status", error);
+        resultBox.innerHTML = `<p style="color:red;">Error fetching data.</p>`;
+      }
+    });
+
+    // Render result cards
+    function renderResults(results) {
+      resultBox.innerHTML = '';
+      results.forEach(({ company_id, name, invited, dates, reminders, response_status }) => {
+        const block = document.createElement('div');
+        block.className = 'status-block';
+        block.innerHTML = `<h4>${name}</h4>`;
+
+        if (!invited) {
+          block.innerHTML += `
+            <p>Status: ❌ Not Invited</p>
+            <button onclick="openModal('${company_id}', 'invitation')">📨 Send Invitation</button>
+          `;
+        } else {
+          block.innerHTML += `
+            <p>Status: ✅ Invited on ${dates.join(', ')}</p>
+            <p>Reminders Sent: ${reminders}</p>
+            <p>Response: ${response_status || '🕒 Waiting for Response'}</p>
+            <button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
+            <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
+          `;
+        }
+
+        resultBox.appendChild(block);
+      });
+    }
+
+    // Handle form submit
+    document.getElementById('emailForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const companyId = document.getElementById('modalCompanyId').value;
+      const mode = document.getElementById('modalMode').value;
+      const emailContent = document.getElementById('emailContent').value;
+      const invitedDate = document.getElementById('invitationDate').value;
+      const selectedCompanies = $('#companySelect').val();
+
+      try {
+        await axios.post('/send_email/', {
+          company_id: companyId,
+          mode,
+          email: emailContent,
+          invited_date: invitedDate
+        });
+        alert("Mail sent!");
+        closeModal();
+
+        // Refresh
+        if (selectedCompanies.length > 0) {
+          const response = await axios.post('/fetching_company_invitation_status/', {
+            company_ids: selectedCompanies
+          });
+          renderResults(response.data.results);
+        }
+      } catch (err) {
+        console.error("Failed to send mail", err);
+        alert("Failed to send mail.");
+      }
+    });
+  });
+
+  // Open modal & fetch preview
+  async function openModal(companyId, mode) {
+    document.getElementById('modalCompanyId').value = companyId;
+    document.getElementById('modalMode').value = (mode === 'change_date') ? 'invitation' : mode;
+    document.getElementById('invitationDateGroup').style.display =
+      (mode === 'invitation' || mode === 'change_date') ? 'block' : 'none';
+
+    try {
+      const res = await axios.post('/get_email_preview/', {
+        company_id: companyId,
+        mode: 'invitation'
+      });
+      document.getElementById('emailContent').value = res.data.email;
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('emailModal').style.display = 'block';
+    } catch (err) {
+      console.error("Failed to get email preview", err);
+      alert("Failed to load email content.");
+    }
+  }
+
+  // Close modal
+  function closeModal() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('emailModal').style.display = 'none';
+  }
+</script>
 {% endblock script %}
 {% endwith %}

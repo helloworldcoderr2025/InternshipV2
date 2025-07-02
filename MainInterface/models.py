@@ -93,8 +93,8 @@ class CompanyInvitations(models.Model):
 
 
 class CompanyJobprofiles(models.Model):
-    company = models.ForeignKey(Company, models.DO_NOTHING)
-    type_of_company = models.TextField(blank=True, null=True)
+    company = models.OneToOneField(Company, models.DO_NOTHING, primary_key=True)  # The composite primary key (company_id, job_profile, job_offer) found, that is not supported. The first column is selected.
+    type_of_company = models.TextField()
     eligible_core_branch = models.TextField(blank=True, null=True)
     job_profile = models.TextField()
     job_offer = models.TextField()
@@ -110,6 +110,7 @@ class CompanyJobprofiles(models.Model):
     class Meta:
         managed = False
         db_table = 'company_jobprofiles'
+        unique_together = (('company', 'job_profile', 'job_offer'),)
 
 
 class CseDepartment(models.Model):

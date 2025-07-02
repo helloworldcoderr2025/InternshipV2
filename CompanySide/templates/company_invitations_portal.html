@@ -1,6 +1,6 @@
 {% extends 'T&P_Dashboard.html' %}
 {% load static %}
-{% block title %}Company Invitations Porta{% endblock title %}
+{% block title %}Company Invitations Portal{% endblock title %}
 {% block css %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -21,8 +21,8 @@
         <!-- Invitation Status -->
         <div class="company-invitations-filter-group">
             <label>Invitation Status:</label>
-            <select name="invited_status" class="company-invitations-filter-select select2" >
-                    <option value="" {% if invited_status == '' %}selected{% endif %}> Select Here</option>
+            <select name="invited_status" class="company-invitations-filter-select select2">
+                <option value="" {% if invited_status == '' %}selected{% endif %}> Select Here</option>
                 <option value="invited" {% if invited_status == 'invited' %}selected{% endif %}>Invited</option>
                 <option value="not_invited" {% if invited_status == 'not_invited' %}selected{% endif %}>Not Invited</option>
             </select>
@@ -103,36 +103,42 @@
                 </tr>
             </thead>
             <tbody>
-            {% for invitation in page_obj %}
-                {% if invitation.company %}
-                <tr>
-                    <td>{{ invitation.company.name }}</td>
-                    <td>{{ invitation.job_profile }}</td>
-                    <td>{{ invitation.job_offer }}</td>
-                    <td>{{ invitation.invited_date }}</td>
-                    <td>{{ invitation.no_of_reminders }}</td>
-                    <td>
-                    {% if invitation.response == "Willing to come to campus" %}
-                        <span class="badge badge-upcoming">{{ invitation.response }}</span>
-                      {% elif invitation.response == "Not willing to come to campus"%}
-                        <span class="badge badge-today">{{ invitation.response }}</span>
-                      {% else %}
-                        <span class="badge badge-tomorrow">{{ invitation.response }}</span>
+                {% for item in page_obj %}
+                    {% if invited_status == 'invited' %}
+                        {% for jp in item.company.companyjobprofiles.all %}
+                            <tr>
+                                <td>{{ item.company.name }}</td>
+                                <td>{{ jp.job_profile }}</td>
+                                <td>{{ jp.job_offer }}</td>
+                                <td>{{ item.invited_date }}</td>
+                                <td>{{ item.no_of_reminders }}</td>
+                                <td>
+                                    {% if item.response == "Willing to come to campus" %}
+                                        <span class="badge badge-upcoming">{{ item.response }}</span>
+                                    {% elif item.response == "Not willing to come to campus" %}
+                                        <span class="badge badge-today">{{ item.response }}</span>
+                                    {% else %}
+                                        <span class="badge badge-tomorrow">{{ item.response }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% elif invited_status == 'not_invited' %}
+                        {% for jp in item.companyjobprofiles.all %}
+                            <tr class="not-invited-row">
+                                <td>{{ item.name }}</td>
+                                <td>{{ jp.job_profile }}</td>
+                                <td>{{ jp.job_offer }}</td>
+                                <td colspan="3" style="text-align: center;"><span style="color: red;">Not Invited</span></td>
+                            </tr>
+                        {% endfor %}
                     {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr class="not-invited-row">
-                    <td>{{ invitation.name }}</td>
-                    <td>{{ invitation.job_profile }}</td>
-                    <td>{{ invitation.job_offer }}</td>
-                    <td colspan="3" style="text-align: center;"><span style="color: red;">Not Invited</span></td>
-                </tr>
-                {% endif %}
-            {% empty %}
-                <tr><td colspan="6" class="no-data">No records found.</td></tr>
-            {% endfor %}
+                {% empty %}
+                    <tr><td colspan="6" class="no-data">No records found.</td></tr>
+                {% endfor %}
             </tbody>
+
+
         </table>
     </div>
 
@@ -153,6 +159,4 @@
         </div>
     </div>
 </div>
-
 {% endblock content %}
-
