@@ -23,4 +23,7 @@ urlpatterns = [
     path('update-response/', views.update_response_view, name='update_response'),
     path('company-data-portal/', views.company_data_portal, name='company_data_portal'),
     path('invitations/', views.company_invitations_portal, name='company_invitations_portal'),
+    path('jobprofiles_autocomplete/', views.jobprofiles_autocomplete, name='jobprofiles_autocomplete'),
+    path('jobprofile_detail/', views.jobprofile_detail, name='jobprofile_detail'),
+    path('jobprofile_update/', views.jobprofile_update, name='jobprofile_update'),
 ]

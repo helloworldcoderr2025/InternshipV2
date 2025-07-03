@@ -95,14 +95,19 @@
             <button onclick="openModal('${company_id}', 'invitation')">📨 Send Invitation</button>
           `;
         } else {
-          block.innerHTML += `
-            <p>Status: ✅ Invited on ${dates.join(', ')}</p>
-            <p>Reminders Sent: ${reminders}</p>
-            <p>Response: ${response_status || '🕒 Waiting for Response'}</p>
-            <button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
-            <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
-          `;
-        }
+            block.innerHTML += `
+              <p>Response: ${response_status || '🕒 Waiting for Response'}</p>
+              ${response_status === 'Not willing to come to campus'
+                ? '' /* hide buttons */
+                : `<button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
+                  <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
+                  ${response_status === 'Willing to come to campus'
+                    ? `<button onclick="openEditJobprofiles('${company_id}')">✏️ Edit Job Profiles</button>
+                    <div id="jobProfileEditor"></div>`
+                    : ''}`
+              }
+            `;
+          }
 
         resultBox.appendChild(block);
       });
@@ -167,6 +172,98 @@
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('emailModal').style.display = 'none';
   }
+
+
+  async function openEditJobprofiles(companyId) {
+  const editContainer = document.getElementById('jobProfileEditor');
+  editContainer.innerHTML = `
+    <h3>Edit Job Profiles</h3>
+    <label>Select Job Profile:</label>
+    <select id="jobProfileDropdown" style="width: 100%; padding: 5px; margin-bottom: 10px;"></select>
+    <div id="jobProfileFormContainer"></div>
+    <button onclick="closeEditor()">❌ Close</button>
+  `;
+
+  // Fetch job profiles
+  try {
+    const res = await axios.get('/jobprofiles_autocomplete/', {
+      params: { company_id: companyId }
+    });
+
+    const dropdown = document.getElementById('jobProfileDropdown');
+    res.data.profiles.forEach(profile => {
+      const opt = document.createElement('option');
+      opt.value = profile.key;
+      opt.textContent = profile.job_profile;
+      dropdown.appendChild(opt);
+    });
+
+    // Load form on change
+    dropdown.addEventListener('change', async function () {
+      const profileId = this.value;
+      if (!profileId) return;
+
+      try {
+        const { data } = await axios.get('/jobprofile_detail/', {
+          params: { id: profileId }
+        });
+
+        document.getElementById('jobProfileFormContainer').innerHTML = `
+          <h4>Editing: ${data.job_profile}</h4>
+          <label>Job Offer:</label><br/>
+          <textarea id="job_offer" style="width: 100%;">${data.job_offer || ''}</textarea><br/><br/>
+
+          <label>HR Email:</label><br/>
+          <input type="email" id="hr_contact_email" value="${data.hr_contact_email || ''}" style="width: 100%;"><br/><br/>
+
+          <label>HR Phone:</label><br/>
+          <input type="text" id="hr_contact_phno" value="${data.hr_contact_phno || ''}" style="width: 100%;"><br/><br/>
+
+          <label>Alternate Contact:</label><br/>
+          <input type="text" id="hr_contact_alternate" value="${data.hr_contact_alternate || ''}" style="width: 100%;"><br/><br/>
+
+          <button onclick="saveProfile(${profileId})">💾 Save</button>
+        `;
+      } catch (err) {
+        console.error("Failed to load profile detail", err);
+        alert("Error loading job profile.");
+      }
+    });
+
+  } catch (err) {
+    console.error("Error fetching profiles", err);
+    editContainer.innerHTML = `<p style="color:red;">Failed to load job profiles.</p>`;
+  }
+}
+
+async function saveProfile(profileId) {
+  try {
+    const job_offer = document.getElementById('job_offer').value;
+    const hr_contact_email = document.getElementById('hr_contact_email').value;
+    const hr_contact_phno = document.getElementById('hr_contact_phno').value;
+    const hr_contact_alternate = document.getElementById('hr_contact_alternate').value;
+
+    await axios.post('/jobprofile_update/', {
+      id: profileId,
+      job_offer,
+      hr_contact_email,
+      hr_contact_phno,
+      hr_contact_alternate
+    });
+
+    alert("Profile updated!");
+    closeEditor();
+  } catch (err) {
+    console.error("Save failed", err);
+    alert("Failed to update profile.");
+  }
+}
+
+function closeEditor() {
+  const container = document.getElementById('jobProfileEditor');
+  if (container) container.innerHTML = '';
+}
+
 </script>
 {% endblock script %}
 {% endwith %}
