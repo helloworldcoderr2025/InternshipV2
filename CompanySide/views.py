@@ -464,6 +464,9 @@ def company_data_portal(request):
 
 def company_invitations_portal(request):
     invited_status = request.GET.get('invited_status', '')
+    if invited_status not in ['invited', 'not_invited']:
+        invited_status = 'invited'  # default
+
     page_number = request.GET.get('page', 1)
     sort_by = request.GET.get('sort_by', 'invited_date')
 
@@ -485,11 +488,10 @@ def company_invitations_portal(request):
     }
 
     data = []
-    data_type = None
 
     if invited_status == 'invited':
         qs = CompanyInvitations.objects.select_related('company') \
-            .prefetch_related('company__companyjobprofiles')
+            .prefetch_related('company__companyjobprofiles_set')
 
         if filter_profile:
             qs = qs.filter(company__companyjobprofiles__job_profile__in=filter_profile)
@@ -509,7 +511,7 @@ def company_invitations_portal(request):
         invited_company_ids = CompanyInvitations.objects.values_list('company_id', flat=True)
 
         qs = Company.objects.exclude(id__in=invited_company_ids) \
-            .prefetch_related('companyjobprofiles')
+            .prefetch_related('companyjobprofiles_set')
 
         if filter_name:
             qs = qs.filter(name__in=filter_name)
@@ -533,8 +535,6 @@ def company_invitations_portal(request):
     company_names = Company.objects.values_list('name', flat=True).distinct()
     company_types = CompanyJobprofiles.objects.values_list('type_of_company', flat=True).distinct()
 
-    for item in page_obj:
-        print(item)
     return render(request, 'company_invitations_portal.html', {
         'page_obj': page_obj,
         'invited_status': invited_status,

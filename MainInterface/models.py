@@ -93,7 +93,7 @@ class CompanyInvitations(models.Model):
 
 
 class CompanyJobprofiles(models.Model):
-    company = models.OneToOneField(Company, models.DO_NOTHING, primary_key=True)  # The composite primary key (company_id, job_profile, job_offer) found, that is not supported. The first column is selected.
+    company = models.ForeignKey(Company, models.DO_NOTHING)
     type_of_company = models.TextField()
     eligible_core_branch = models.TextField(blank=True, null=True)
     job_profile = models.TextField()
@@ -106,11 +106,11 @@ class CompanyJobprofiles(models.Model):
     hr_contact_email = models.TextField(blank=True, null=True)
     hr_contact_phno = models.TextField(blank=True, null=True)
     hr_contact_alternate = models.TextField(blank=True, null=True)
+    key = models.BigAutoField(primary_key=True)
 
     class Meta:
         managed = False
         db_table = 'company_jobprofiles'
-        unique_together = (('company', 'job_profile', 'job_offer'),)
 
 
 class CseDepartment(models.Model):
@@ -249,7 +249,7 @@ class Student(models.Model):
     verified = models.TextField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
-    profilepic = models.TextField(db_column='profilePic', blank=True, null=True)  # Field name made lowercase. 
+    profilepic = models.TextField(db_column='profilePic', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
