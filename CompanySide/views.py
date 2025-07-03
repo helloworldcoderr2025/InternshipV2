@@ -461,7 +461,6 @@ def company_data_portal(request):
     }
     return render(request, 'company_data_portal.html', context)
 
-
 def company_invitations_portal(request):
     invited_status = request.GET.get('invited_status', '')
     if invited_status not in ['invited', 'not_invited']:
@@ -475,6 +474,7 @@ def company_invitations_portal(request):
     filter_response = request.GET.getlist('response')
     filter_name = request.GET.getlist('company_name')
     filter_type = request.GET.getlist('type_of_company')
+    filter_branch = request.GET.getlist('branch')
 
     invited_sort_mapping = {
         'company': 'company__name',
@@ -488,6 +488,7 @@ def company_invitations_portal(request):
     }
 
     data = []
+    branches = ['BIO', 'CHE', 'CIV', 'CSE', 'ECE', 'EEE', 'MECH', 'MME']
 
     if invited_status == 'invited':
         qs = CompanyInvitations.objects.select_related('company') \
@@ -503,6 +504,14 @@ def company_invitations_portal(request):
             qs = qs.filter(company__name__in=filter_name)
         if filter_type:
             qs = qs.filter(company__companyjobprofiles__type_of_company__in=filter_type)
+
+        if filter_branch:
+            # Filter separately for eligible_core_branch
+            qs_core = qs.filter(company__companyjobprofiles__eligible_core_branch__iregex=r'(' + '|'.join(filter_branch) + ')')
+            # Filter separately for eligible_non_core_branch
+            qs_non_core = qs.filter(company__companyjobprofiles__eligible_non_core_branch__iregex=r'(' + '|'.join(filter_branch) + ')')
+            # Combine both QuerySets with OR
+            qs = (qs_core | qs_non_core).distinct()
 
         data = qs.order_by(invited_sort_mapping.get(sort_by, 'invited_date')).distinct()
         data_type = 'invited'
@@ -521,6 +530,11 @@ def company_invitations_portal(request):
             qs = qs.filter(companyjobprofiles__job_profile__in=filter_profile)
         if filter_offer:
             qs = qs.filter(companyjobprofiles__job_offer__in=filter_offer)
+
+        if filter_branch:
+            qs_core = qs.filter(companyjobprofiles__eligible_core_branch__iregex=r'(' + '|'.join(filter_branch) + ')')
+            qs_non_core = qs.filter(companyjobprofiles__eligible_non_core_branch__iregex=r'(' + '|'.join(filter_branch) + ')')
+            qs = (qs_core | qs_non_core).distinct()
 
         data = qs.order_by(not_invited_sort_mapping.get(sort_by, 'name')).distinct()
         data_type = 'not_invited'
@@ -544,6 +558,8 @@ def company_invitations_portal(request):
         'filter_response': filter_response,
         'filter_name': filter_name,
         'filter_type': filter_type,
+        'filter_branch': filter_branch,
+        'branches': branches,
         'sort_by': sort_by,
         'profiles': profiles,
         'offers': offers,
