@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
@@ -145,20 +146,32 @@ def fetching_company_invitation_status(request):
         data = json.loads(request.body)
         company_ids = data.get('company_ids', [])
         results = []
-
         for company_id in company_ids:
             try:
-                company = Company.objects.get(company_id=company_id)
+                company = Company.objects.get(id=company_id)
                 invites = CompanyInvitations.objects.filter(company_id=company_id)
-                results.append({
-                    'name': company.name,
-                    'invited': invites.exists(),
-                    'dates': [str(invite.invited_date) for invite in invites]
-                })
+                for invite in invites:
+                    results.append({
+                        'company_id': company.id,
+                        'name': company.name,
+                        'invited': True,
+                        'dates': [invite.invited_date],
+                        'reminders': invite.no_of_reminders,
+                        'response_status': invite.response,
+                    })
+                if not invites.exists():
+                    results.append({
+                        'company_id': company.id,
+                        'name': company.name,
+                        'invited': False,
+                        'dates': [],
+                        'reminders': 0,
+                        'response_status': None,
+                    })
             except Company.DoesNotExist:
                 continue
-
         return JsonResponse({'results': results})
+
 
 def company_search_page(request):
     companies = Company.objects.all().order_by('name')
@@ -222,7 +235,6 @@ def delete_jobprofile(request, profile_id):
     profile = get_object_or_404(CompanyJobprofiles, id=profile_id)
     profile.delete()
     return Response({"message": "Deleted successfully"}, status=status.HTTP_200_OK)
-
 @csrf_exempt
 def fetching_company_invitation_status_view(request):
     if request.method == 'POST':
@@ -238,11 +250,22 @@ def fetching_company_invitation_status_view(request):
             try:
                 company = Company.objects.get(id=cid)
                 invites = CompanyInvitations.objects.filter(company=company).order_by('-invited_date')
+
                 if invites.exists():
                     latest_invite = invites.first()
                     reminders = latest_invite.no_of_reminders or 0
-                    # Serialize dates safely
-                    date_list = [inv.invited_date.strftime('%Y-%m-%d') if inv.invited_date else '' for inv in invites]
+
+                    # Safely parse and reformat dates if possible
+                    date_list = []
+                    for inv in invites:
+                        raw_date = inv.invited_date
+                        try:
+                            parsed_date = datetime.strptime(raw_date, '%Y-%m-%d')  # Adjust if your format is different
+                            formatted = parsed_date.strftime('%Y-%m-%d')
+                        except Exception:
+                            formatted = raw_date  # fallback if not parsable
+                        date_list.append(formatted)
+
                     results.append({
                         'company_id': cid,
                         'name': company.name,
@@ -261,7 +284,6 @@ def fetching_company_invitation_status_view(request):
                         'response_status': None,
                     })
             except Company.DoesNotExist:
-                # Optional: include an entry for missing companies
                 results.append({
                     'company_id': cid,
                     'name': 'Unknown Company',
@@ -551,3 +573,46 @@ def company_invitations_portal(request):
         'company_names': company_names,
         'company_types': company_types,
     })
+
+
+
+
+
+
+
+@csrf_exempt
+def jobprofiles_autocomplete(request):
+    company_id = request.GET.get('company_id')
+    matches = CompanyJobprofiles.objects.filter(
+        company_id=company_id
+    ).values('key', 'job_profile')
+    return JsonResponse({'profiles': list(matches)})
+
+
+@csrf_exempt
+def jobprofile_detail(request):
+    prof = CompanyJobprofiles.objects.get(key=request.GET['id'])
+    return JsonResponse({
+        'job_profile': prof.job_profile,
+        'job_offer': prof.job_offer,
+        'hr_contact_email': prof.hr_contact_email,
+        'hr_contact_phno': prof.hr_contact_phno,
+        'hr_contact_alternate': prof.hr_contact_alternate,
+    })
+
+
+
+@csrf_exempt
+def jobprofile_update(request):
+    body = json.loads(request.body)
+    prof = CompanyJobprofiles.objects.get(key=body['id'])
+
+    prof.job_offer = body.get('job_offer', prof.job_offer)
+    prof.hr_contact_email = body.get('hr_contact_email', prof.hr_contact_email)
+    prof.hr_contact_phno = body.get('hr_contact_phno', prof.hr_contact_phno)
+    prof.hr_contact_alternate = body.get('hr_contact_alternate', prof.hr_contact_alternate)
+
+    prof.save()
+
+    return JsonResponse({'status': 'ok'})
+
