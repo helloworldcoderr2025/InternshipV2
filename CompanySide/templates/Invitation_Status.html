@@ -96,17 +96,30 @@
           `;
         } else {
             block.innerHTML += `
-              <p>Response: ${response_status || '🕒 Waiting for Response'}</p>
-              ${response_status === 'Not willing to come to campus'
-                ? '' /* hide buttons */
-                : `<button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
-                  <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
-                  ${response_status === 'Willing to come to campus'
-                    ? `<button onclick="openEditJobprofiles('${company_id}')">✏️ Edit Job Profiles</button>
-                    <div id="jobProfileEditor"></div>`
-                    : ''}`
-              }
-            `;
+  <p>Response: ${response_status || 'Not responded'}</p>
+  ${
+    (response_status === 'Not responded' || !response_status)
+      ? `
+        <button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
+        <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
+        <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
+        <div id="responseEditor_${company_id}"></div>
+      `
+      : response_status === 'Willing to come to campus'
+        ? `
+          <button onclick="openEditJobprofiles('${company_id}')">✏️ Edit Job Profiles</button>
+          <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
+          <div id="jobProfileEditor"></div>
+          <div id="responseEditor_${company_id}"></div>
+        `
+        : `
+          <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
+          <div id="responseEditor_${company_id}"></div>
+        `
+  }
+`;
+
+
           }
 
         resultBox.appendChild(block);
@@ -146,6 +159,30 @@
     });
   });
 
+  function showUpdateResponseForm(companyId, currentResponse) {
+        const editorDiv = document.getElementById(`responseEditor_${companyId}`);
+
+        editorDiv.innerHTML = `
+          <form onsubmit="return updateInlineResponse(event, '${companyId}')">
+            <label>New Response:</label>
+            <select id="responseSelect_${companyId}" required>
+              <option value="">-- Select --</option>
+              <option value="Willing to come to campus" ${currentResponse === 'Willing to come to campus' ? 'selected' : ''}>Willing to come to campus</option>
+              <option value="Not willing to come to campus" ${currentResponse === 'Not willing to come to campus' ? 'selected' : ''}>Not willing to come to campus</option>
+              <option value="Not responded" ${!currentResponse || currentResponse === 'Not responded' ? 'selected' : ''}>Not responded</option>
+            </select>
+            <button type="submit">✅ Save</button>
+            <button type="button" onclick="closeResponseForm('${companyId}')">❌ Cancel</button>
+          </form>
+        `;
+    }
+    function closeResponseForm(companyId) {
+      const editorDiv = document.getElementById(`responseEditor_${companyId}`);
+      editorDiv.innerHTML = '';
+    }
+
+
+
   // Open modal & fetch preview
   async function openModal(companyId, mode) {
     document.getElementById('modalCompanyId').value = companyId;
@@ -179,7 +216,9 @@
   editContainer.innerHTML = `
     <h3>Edit Job Profiles</h3>
     <label>Select Job Profile:</label>
-    <select id="jobProfileDropdown" style="width: 100%; padding: 5px; margin-bottom: 10px;"></select>
+    <select id="jobProfileDropdown" style="width: 100%; padding: 5px; margin-bottom: 10px;">
+      <option value="">-- Select a job profile --</option> <!-- 🔹 This line is key -->
+    </select>
     <div id="jobProfileFormContainer"></div>
     <button onclick="closeEditor()">❌ Close</button>
   `;
@@ -191,6 +230,7 @@
     });
 
     const dropdown = document.getElementById('jobProfileDropdown');
+
     res.data.profiles.forEach(profile => {
       const opt = document.createElement('option');
       opt.value = profile.key;
@@ -198,10 +238,13 @@
       dropdown.appendChild(opt);
     });
 
-    // Load form on change
+    // Only load form after manual selection
     dropdown.addEventListener('change', async function () {
       const profileId = this.value;
-      if (!profileId) return;
+      if (!profileId) {
+        document.getElementById('jobProfileFormContainer').innerHTML = ''; // Clear if reset
+        return;
+      }
 
       try {
         const { data } = await axios.get('/jobprofile_detail/', {
@@ -236,6 +279,7 @@
   }
 }
 
+
 async function saveProfile(profileId) {
   try {
     const job_offer = document.getElementById('job_offer').value;
@@ -263,6 +307,39 @@ function closeEditor() {
   const container = document.getElementById('jobProfileEditor');
   if (container) container.innerHTML = '';
 }
+
+async function updateInlineResponse(e, companyId) {
+  e.preventDefault();
+  const select = document.getElementById(`responseSelect_${companyId}`);
+  const new_response = select.value;
+
+  if (!new_response) {
+    alert("Please select a response.");
+    return;
+  }
+
+  try {
+    await axios.post('/update_invitation_response_inline/', {
+      company_id: companyId,
+      new_response: new_response
+    });
+
+    alert("Response updated successfully.");
+    closeResponseForm(companyId);
+
+    // Refresh the results
+    const selectedCompanies = $('#companySelect').val();
+    if (selectedCompanies.length > 0) {
+      const response = await axios.post('/fetching_company_invitation_status/', {
+        company_ids: selectedCompanies
+      });
+      renderResults(response.data.results);
+    }
+  } catch (err) {
+    console.error("Failed to update response", err);
+  }
+}
+
 
 </script>
 {% endblock script %}
