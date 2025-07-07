@@ -616,3 +616,17 @@ def jobprofile_update(request):
 
     return JsonResponse({'status': 'ok'})
 
+@csrf_exempt
+def update_invitation_response_inline(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        company_id = data.get('company_id')
+        new_response = data.get('new_response')
+
+        try:
+            invitation = CompanyInvitations.objects.get(company_id=company_id)
+            invitation.response = new_response
+            invitation.save()
+            return JsonResponse({'status': 'ok'})
+        except CompanyInvitations.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invitation not found'}, status=404)

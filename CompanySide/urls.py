@@ -26,4 +26,5 @@ urlpatterns = [
     path('jobprofiles_autocomplete/', views.jobprofiles_autocomplete, name='jobprofiles_autocomplete'),
     path('jobprofile_detail/', views.jobprofile_detail, name='jobprofile_detail'),
     path('jobprofile_update/', views.jobprofile_update, name='jobprofile_update'),
+    path('update_invitation_response_inline/', views.update_invitation_response_inline, name='update_invitation_response_inline'),
 ]
