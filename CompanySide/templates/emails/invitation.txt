@@ -1,6 +1,6 @@
 Dear {{ company.name }},
 
-We are pleased to invite your esteemed organization to participate in our campus placement drive on {{ invitation_date }}.
+We are pleased to invite your esteemed organization to participate in our campus placement drive on.
 
 Kindly consider this opportunity. Looking forward to your response.
 

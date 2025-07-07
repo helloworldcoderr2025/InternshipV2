@@ -27,7 +27,14 @@
                 <option value="not_invited" {% if invited_status == 'not_invited' %}selected{% endif %}>Not Invited</option>
             </select>
         </div>
-
+        <div class="company-invitations-filter-group">
+            <label>Company Name:</label>
+            <select name="company_name" class="company-invitations-filter-select select2" multiple>
+                {% for name in company_names %}
+                    <option value="{{ name }}" {% if name in filter_name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="company-invitations-filter-group">
             <label>Job Profile:</label>
             <select name="job_profile" class="company-invitations-filter-select select2" multiple>
@@ -45,7 +52,6 @@
                 {% endfor %}
             </select>
         </div>
-
         <div class="company-invitations-filter-group">
             <label>Response:</label>
             <select name="response" class="company-invitations-filter-select select2" multiple>
@@ -54,16 +60,14 @@
                 {% endfor %}
             </select>
         </div>
-
         <div class="company-invitations-filter-group">
-            <label>Company Name:</label>
-            <select name="company_name" class="company-invitations-filter-select select2" multiple>
-                {% for name in company_names %}
-                    <option value="{{ name }}" {% if name in filter_name %}selected{% endif %}>{{ name }}</option>
+            <label>Eligible Branches:</label>
+            <select name="branch" class="company-invitations-filter-select select2" multiple>
+                {% for branch in branches %}
+                    <option value="{{ branch }}" {% if branch in filter_branch %}selected{% endif %}>{{ branch }}</option>
                 {% endfor %}
             </select>
         </div>
-
         <div class="company-invitations-filter-group">
             <label>Type of Company:</label>
             <select name="type_of_company" class="company-invitations-filter-select select2" multiple>
