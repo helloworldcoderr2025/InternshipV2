@@ -225,150 +225,115 @@
       }
     }
     </style>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-  
-  <script>
-    // Register the datalabels plugin
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script>
     Chart.register(ChartDataLabels);
 
-    // Enhanced color palette
+    // Branch color palette
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
       '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
     ];
 
-    // Custom plugin for better radial labels with leader lines
+    // Custom plugin to draw radial labels with leader lines
     const RadialLabelsPlugin = {
       id: 'radialLabelsPlugin',
-      afterDatasetsDraw(chart, args, options) {
+      afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
         const dataset = chart.data.datasets[0];
         const meta = chart.getDatasetMeta(0);
-        
         if (!meta.data || meta.data.length === 0) return;
 
         ctx.save();
-        
-        // Calculate chart center
         const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
         const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
-        
+
         meta.data.forEach((arc, index) => {
-          const angle = (arc.startAngle + arc.endAngle) / 2;
           const value = dataset.data[index];
-          const label = chart.data.labels[index];
-          
-          if (value === 0) return; // Skip zero values
-          
-          // Calculate positions with better spacing
+          if (value === 0) return;
+
+          const angle = (arc.startAngle + arc.endAngle) / 2;
           const radius = arc.outerRadius;
-          const labelDistance = radius + 80; // Increased distance for better visibility
-          const lineEndDistance = radius + 50; // Distance from center to line end
-          
-          // Calculate positions
+          const label = chart.data.labels[index];
+          const labelText = `${label} (${value})`;
+
+          // Leader line positions
           const lineStartX = centerX + Math.cos(angle) * (radius + 5);
           const lineStartY = centerY + Math.sin(angle) * (radius + 5);
-          const lineEndX = centerX + Math.cos(angle) * lineEndDistance;
-          const lineEndY = centerY + Math.sin(angle) * lineEndDistance;
-          const labelX = centerX + Math.cos(angle) * labelDistance;
-          const labelY = centerY + Math.sin(angle) * labelDistance;
-          
+          const lineEndX = centerX + Math.cos(angle) * (radius + 50);
+          const lineEndY = centerY + Math.sin(angle) * (radius + 50);
+          const extensionX = lineEndX + (Math.cos(angle) > 0 ? 25 : -25);
+
           // Draw leader line
           ctx.strokeStyle = '#666';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(lineStartX, lineStartY);
           ctx.lineTo(lineEndX, lineEndY);
-          
-          // Add horizontal line extension for better readability
-          const extensionLength = 25;
-          const extensionX = lineEndX + (Math.cos(angle) > 0 ? extensionLength : -extensionLength);
           ctx.lineTo(extensionX, lineEndY);
           ctx.stroke();
-          
-          // Draw label background
-          const labelText = `${label} (${value})`;
-          ctx.font = 'bold 13px Segoe UI, Arial, sans-serif';
-          const textMetrics = ctx.measureText(labelText);
-          const textWidth = textMetrics.width;
-          const textHeight = 18;
-          
-          // Position label based on angle
-          let finalLabelX = labelX;
+
+          // Text alignment
           let textAlign = 'center';
-          
-          if (Math.cos(angle) > 0.1) {
-            textAlign = 'left';
-            finalLabelX = extensionX + 8;
-          } else if (Math.cos(angle) < -0.1) {
-            textAlign = 'right';
-            finalLabelX = extensionX - 8;
-          }
-          
-          // Check if roundRect is supported, fallback to regular rect
-          const drawRoundedRect = (x, y, width, height, radius) => {
-            if (ctx.roundRect) {
-              ctx.roundRect(x, y, width, height, radius);
-            } else {
-              // Fallback for older browsers
-              ctx.rect(x, y, width, height);
-            }
-          };
-          
-          // Draw label background
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+          let finalX = extensionX;
+          if (Math.cos(angle) > 0.1) { textAlign = 'left'; finalX += 8; }
+          else if (Math.cos(angle) < -0.1) { textAlign = 'right'; finalX -= 8; }
+
+          ctx.font = 'bold 13px Segoe UI, Arial, sans-serif';
+          const textWidth = ctx.measureText(labelText).width;
+          const bgPadding = 6;
+          const bgWidth = textWidth + bgPadding * 2;
+          const bgHeight = 24;
+          let bgX = finalX - bgWidth / 2;
+          if (textAlign === 'left') bgX = finalX - bgPadding;
+          if (textAlign === 'right') bgX = finalX - textWidth - bgPadding;
+          const bgY = lineEndY - bgHeight / 2;
+
+          // Draw background
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.shadowColor = 'rgba(0,0,0,0.15)';
           ctx.shadowBlur = 8;
           ctx.shadowOffsetX = 2;
           ctx.shadowOffsetY = 2;
-          
-          const bgPadding = 6;
-          const bgWidth = textWidth + bgPadding * 2;
-          const bgHeight = textHeight + bgPadding;
-          let bgX = finalLabelX - bgWidth / 2;
-          
-          if (textAlign === 'left') bgX = finalLabelX - bgPadding;
-          if (textAlign === 'right') bgX = finalLabelX - textWidth - bgPadding;
-          
-          const bgY = labelY - bgHeight / 2;
-          
-          // Draw rounded rectangle for label background
           ctx.beginPath();
-          drawRoundedRect(bgX, bgY, bgWidth, bgHeight, 6);
+          const r = 6;
+          ctx.moveTo(bgX + r, bgY);
+          ctx.lineTo(bgX + bgWidth - r, bgY);
+          ctx.quadraticCurveTo(bgX + bgWidth, bgY, bgX + bgWidth, bgY + r);
+          ctx.lineTo(bgX + bgWidth, bgY + bgHeight - r);
+          ctx.quadraticCurveTo(bgX + bgWidth, bgY + bgHeight, bgX + bgWidth - r, bgY + bgHeight);
+          ctx.lineTo(bgX + r, bgY + bgHeight);
+          ctx.quadraticCurveTo(bgX, bgY + bgHeight, bgX, bgY + bgHeight - r);
+          ctx.lineTo(bgX, bgY + r);
+          ctx.quadraticCurveTo(bgX, bgY, bgX + r, bgY);
+          ctx.closePath();
           ctx.fill();
-          
-          // Add border to label background
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          
-          // Reset shadow
+
+          // Border
           ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          
-          // Draw label text
+          ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+          ctx.stroke();
+
+          // Label text
           ctx.fillStyle = '#2c3e50';
           ctx.textAlign = textAlign;
           ctx.textBaseline = 'middle';
-          ctx.fillText(labelText, finalLabelX, labelY);
+          ctx.fillText(labelText, finalX, lineEndY);
         });
-        
         ctx.restore();
       }
     };
 
-    // Initialize the chart with proper sizing options
+    // Initialize pie chart
     const ctx = document.getElementById('branchPieChart').getContext('2d');
     new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: {{ branch_labels|safe }},
+        labels: {{ branch_labels|default:"[]"|safe }},
         datasets: [{
-          data: {{ branch_data|safe }},
+          data: {{ branch_data|default:"[]"|safe }},
           backgroundColor: colors,
           borderColor: '#ffffff',
           borderWidth: 3,
@@ -379,72 +344,41 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: {
-          padding: {
-            top: 60,
-            bottom: 60,
-            left: 60,
-            right: 60
-          }
-        },
-        interaction: {
-          intersect: false
-        },
+        layout: { padding: { top: 60, bottom: 60, left: 60, right: 60 } },
         plugins: {
-          legend: {
-            display: false // We're using custom radial labels
-          },
+          legend: { display: false },
           title: {
             display: true,
             text: 'Students Placed by Branch',
-            font: {
-              size: 18,
-              weight: 'bold'
-            },
+            font: { size: 18, weight: 'bold' },
             color: '#2c3e50',
-            padding: {
-              top: 10,
-              bottom: 30
-            }
+            padding: { top: 10, bottom: 30 }
           },
           tooltip: {
-            backgroundColor: 'rgba(44, 62, 80, 0.95)',
-            titleColor: '#ffffff',
-            bodyColor: '#ffffff',
-            borderColor: '#ffffff',
+            callbacks: {
+              label: (ctx) => {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
+                return `${ctx.label}: ${ctx.parsed} students (${pct}%)`;
+              }
+            },
+            backgroundColor: 'rgba(44,62,80,0.95)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#fff',
             borderWidth: 1,
             cornerRadius: 8,
-            displayColors: true,
-            bodyFont: {
-              size: 13
-            },
-            titleFont: {
-              size: 14,
-              weight: 'bold'
-            },
-            callbacks: {
-              label: function(context) {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                return `${context.label}: ${context.parsed} students (${percentage}%)`;
-              }
-            }
+            bodyFont: { size: 13 },
+            titleFont: { size: 14, weight: 'bold' }
           },
-          // Disable default datalabels since we're using custom plugin
-          datalabels: {
-            display: false
-          }
+          datalabels: { display: false }
         },
-        animation: {
-          animateRotate: true,
-          animateScale: true,
-          duration: 1800,
-          easing: 'easeOutQuart'
-        }
+        animation: { animateRotate: true, animateScale: true, duration: 1800, easing: 'easeOutQuart' }
       },
       plugins: [RadialLabelsPlugin]
     });
-  </script>
+    </script>
+
   {% endblock content %}
   {% block script %}{% endblock script %}
 </body>

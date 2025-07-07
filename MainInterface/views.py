@@ -992,22 +992,79 @@ from django.db.models import Count
 def tpportal(request):
     selected_year = request.GET.get('academic_year', '')
 
-    # === 1. Counts
     invitations = CompanyInvitations.objects.filter(response='Willing to come to campus')
     invitations_pending = CompanyInvitations.objects.filter(response='Not responded')
 
-    # === 2. Pie chart: branch-wise placements
-    all_branches = ['CSE', 'ECE', 'EEE', 'ME', 'CE', 'CHE', 'MME', 'BT']
-    placed_regs = Registrations.objects.filter(result="placed").select_related('rollnumber')
+    branches = ['CSE', 'ECE', 'EEE', 'MECH', 'CIV', 'CHE', 'MME', 'BIO']
+
+    # Initialize sets to track unique roll numbers per branch and per category
+    branch_core = {branch: set() for branch in branches}
+    branch_non_core = {branch: set() for branch in branches}
+
+    # Fetch all placed registrations
+    placed_regs = Registrations.objects.filter(result='placed').select_related('rollnumber')
     if selected_year:
         placed_regs = placed_regs.filter(rollnumber__academic_year=selected_year)
 
-    branch_stats = placed_regs.values('rollnumber__branch').annotate(count=Count('rollnumber', distinct=True))
-    branch_count_map = {entry['rollnumber__branch']: entry['count'] for entry in branch_stats}
-    branch_labels = all_branches
-    branch_data = [branch_count_map.get(branch, 0) for branch in all_branches]
+    for reg in placed_regs:
+        student = reg.rollnumber
+        if not student or not student.branch:
+            continue
 
-    # === 3. Academic years dropdown
+        branch = student.branch.strip().upper()
+        roll_no = student.roll_no
+        if branch not in branches:
+            continue
+
+        # Fetch job profiles for this company's placement
+        job_profiles = CompanyJobprofiles.objects.filter(company_id=reg.company_id)
+
+        for profile in job_profiles:
+            # Check if branch is eligible for core
+            if profile.eligible_core_branch:
+                eligible = [b.strip().upper() for b in profile.eligible_core_branch.split(',')]
+                if branch in eligible:
+                    branch_core[branch].add(roll_no)
+            # Check if branch is eligible for non-core
+            if profile.eligible_non_core_branch:
+                eligible = [b.strip().upper() for b in profile.eligible_non_core_branch.split(',')]
+                if branch in eligible:
+                    branch_non_core[branch].add(roll_no)
+
+    # === Compute final counts ===
+    branch_counts = {}
+    for branch in branches:
+        core_set = branch_core[branch]
+        non_core_set = branch_non_core[branch]
+        both_set = core_set & non_core_set  # students placed in both core and non-core
+        core_only_set = core_set - both_set
+        non_core_only_set = non_core_set - both_set
+
+        total_set = core_set.union(non_core_set)  # unique students placed in this branch
+
+        branch_counts[branch] = {
+            'total': len(total_set),
+            'core': len(core_only_set),
+            'non_core': len(non_core_only_set),
+            'both': len(both_set),
+        }
+
+    # === Prepare data for chart (or labels) ===
+    branch_labels = []
+    branch_data = []
+
+    for branch in branches:
+        counts = branch_counts[branch]
+        total = counts['total']
+        core = counts['core']
+        non_core = counts['non_core']
+        both = counts['both']
+
+        # Label shows: Branch((core)+noncore+both)
+        label = f"{branch}(({core})+{non_core}+{both})"
+        branch_labels.append(label)
+        branch_data.append(total)
+
     academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('-academic_year')
 
     return render(request, 'T&P_Dashboard.html', {
@@ -1018,6 +1075,8 @@ def tpportal(request):
         'academic_years': academic_years,
         'selected_year': selected_year,
     })
+
+
 @login_required
 def verifystudents(request):
     if request.method=="POST":
