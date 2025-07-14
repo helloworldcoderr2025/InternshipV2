@@ -26,20 +26,13 @@
     <div class="invitation-results-empty">Select companies to view invitation status</div>
   </div>
 
-  <!-- Modal -->
   <div id="overlay" class="invitation-modal-overlay"></div>
-  <div id="emailModal" class="invitation-email-modal">
+  <div id="emailModal" class="invitation-email-modal" style="width:700px;height:500px;">
     <h3>Email Preview</h3>
     <form id="emailForm">
       <input type="hidden" id="modalCompanyId">
       <input type="hidden" id="modalMode">
-
-      <div id="invitationDateGroup" style="margin-top: 10px; display: none;">
-        <label for="invitationDate">📅 Select Invitation Date:</label>
-        <input type="date" id="invitationDate" />
-      </div>
-
-      <textarea id="emailContent"></textarea>
+      <textarea id="emailContent" ></textarea>
       <br>
       <button type="submit">📤 Send</button>
       <button type="button" onclick="closeModal()">❌ Cancel</button>
@@ -95,32 +88,40 @@
             <button onclick="openModal('${company_id}', 'invitation')">📨 Send Invitation</button>
           `;
         } else {
+            // Determine the style dynamically using JavaScript
+            let spanStyle = "padding: 5px 10px; border-radius: 15px; font-weight: 600; display: inline-block; text-align: center; min-width: 100px;";
+            let statusText = response_status || 'Not responded'; // Use the status or default
+
+            if (statusText === 'Willing to come to campus') {
+                spanStyle += " background-color: #4CAF50; color:rgb(8, 8, 8);";
+            } else if (statusText === 'Not willing to come to campus') {
+                spanStyle += " background-color: #F44336; color:rgb(8, 8, 8);";
+            } else if (statusText === 'Not responded') {
+                spanStyle += " background-color: #FF9800; color:rgb(8, 8, 8);"; 
+            }
+
             block.innerHTML += `
-  <p>Response: ${response_status || 'Not responded'}</p>
-  ${
-    (response_status === 'Not responded' || !response_status)
-      ? `
-        <button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
-        <button onclick="openModal('${company_id}', 'change_date')">✏️ Change Date</button>
-        <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
-        <div id="responseEditor_${company_id}"></div>
-      `
-      : response_status === 'Willing to come to campus'
-        ? `
-          <button onclick="openEditJobprofiles('${company_id}')">✏️ Edit Job Profiles</button>
-          <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
-          <div id="jobProfileEditor"></div>
-          <div id="responseEditor_${company_id}"></div>
-        `
-        : `
-          <button onclick="showUpdateResponseForm('${company_id}', '${response_status || ''}')">📝 Update Invitation Response</button>
-          <div id="responseEditor_${company_id}"></div>
-        `
-  }
-`;
-
-
-          }
+            <p>Response: <span style="${spanStyle}">${statusText}</span></p>
+            ${
+                (statusText === 'Not responded')
+                ? `
+                    <button onclick="openModal('${company_id}', 'reminder')">🔁 Send Reminder</button>
+                    <button onclick="showUpdateResponseForm('${company_id}', '${statusText}')"> Update Invitation Response</button>
+                    <div id="responseEditor_${company_id}"></div>
+                  `
+                : statusText === 'Willing to come to campus'
+                    ? `
+                        <button onclick="openEditJobprofiles('${company_id}')">✏️ View & Edit Job Profiles</button>
+                        <button onclick="showUpdateResponseForm('${company_id}', '${statusText}')">Update Invitation Response</button>
+                        <div id="jobProfileEditor"></div>
+                        <div id="responseEditor_${company_id}"></div>
+                      `
+                    : `
+                        <button onclick="showUpdateResponseForm('${company_id}', '${statusText}')">Update Invitation Response</button>
+                      `
+            }
+          `;
+        }
 
         resultBox.appendChild(block);
       });
@@ -187,8 +188,6 @@
   async function openModal(companyId, mode) {
     document.getElementById('modalCompanyId').value = companyId;
     document.getElementById('modalMode').value = (mode === 'change_date') ? 'invitation' : mode;
-    document.getElementById('invitationDateGroup').style.display =
-      (mode === 'invitation' || mode === 'change_date') ? 'block' : 'none';
 
     try {
       const res = await axios.post('/get_email_preview/', {
@@ -217,8 +216,7 @@
     <h3>Edit Job Profiles</h3>
     <label>Select Job Profile:</label>
     <select id="jobProfileDropdown" style="width: 100%; padding: 5px; margin-bottom: 10px;">
-      <option value="">-- Select a job profile --</option> <!-- 🔹 This line is key -->
-    </select>
+      <option value="">-- Select a job profile --</option> </select>
     <div id="jobProfileFormContainer"></div>
     <button onclick="closeEditor()">❌ Close</button>
   `;

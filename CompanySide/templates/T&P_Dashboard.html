@@ -10,7 +10,6 @@
 </head>
 <body>
 
-  <!-- Top Navigation Header (from friend's version) -->
   <div class="top-navigation-header">
     <div class="main-dashboard-title">
       <h1>T&P Dashboard</h1>
@@ -28,15 +27,13 @@
         <div class="nav-dropdown-menu">
           <a href="{% url 'company_invitations_portal' %}" class="nav-dropdown-item">Companies Invitations Data Portal</a>
           <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item {% if page == 'invitation_status' %}active{% endif %}">Check & Send Invitation Status</a>
-          <a href="{% url 'update_response' %}" class="nav-dropdown-item">Update Invitation Response</a>
         </div>
       </div>
-      <a href="{% url 'tpportal' %}" class="nav-menu-item {% if section == 'dashboard' %}active{% endif %}">T&amp;P Dashboard</a>
+      <a href="{% url 'tpportal' %}" class="nav-menu-item {% if section == 'dashboard' %}active{% endif %}">T&P Dashboard</a>
     </div>
   </div>
   
   {% block content %}
-    <!-- Main Content -->
     <div class="main-content">
       <div class="dashboard-header">
         <div class="header-content">
@@ -47,9 +44,8 @@
       </div>
       <div class="company-count">
         <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
-        <div><strong>Pending Invitations: </strong> {{ pending_invitations }}</div>
+        <div><strong>Pending Invitations(Not responded): </strong> {{ pending_invitations }}</div>
       </div>
-      <!-- Statistics Section -->
       <div class="statistics-section">
         <div class="section-header">
           <h2>Branch-wise Placement Statistics</h2>
@@ -65,8 +61,8 @@
           <button type="submit">Show</button>
         </form>
         
-        <!-- Chart Container with proper sizing -->
         <div class="chart-container">
+          <h3 class="chart-title-html">Branch-wise Placement Statistics</h3>
           <div class="chart-wrapper">
             <canvas id="branchPieChart"></canvas>
           </div>
@@ -74,24 +70,24 @@
       </div>
     </div>
 
-    <!-- Enhanced CSS for proper chart sizing -->
     <style>
     .statistics-section {
       margin-top: 40px;
       padding: 30px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
       position: relative;
+      z-index: 1;
     }
 
     .section-header h2 {
       text-align: center;
-      font-size: 2rem;
-      color: #2c3e50;
+      font-size: 2.2rem;
+      color: #ffffff;
       margin-bottom: 30px;
-      font-weight: 600;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
     .filter-controls {
@@ -101,75 +97,110 @@
       gap: 15px;
       margin-bottom: 40px;
       padding: 20px;
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 2;
     }
 
     .filter-controls label {
       font-weight: 600;
       color: #2c3e50;
+      font-size: 1.1rem;
     }
 
     .filter-controls select {
-      padding: 10px 15px;
+      padding: 12px 18px;
       border: 2px solid #e2e8f0;
-      border-radius: 10px;
+      border-radius: 12px;
       background: white;
-      font-size: 14px;
+      font-size: 15px;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .filter-controls select:focus {
       outline: none;
       border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
     }
 
     .filter-controls button {
-      padding: 10px 25px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      font-size: 15px;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     }
 
     .filter-controls button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
     }
 
-    /* FIXED: Proper chart container sizing */
     .chart-container {
-      background: white;
+      background: rgba(255, 255, 255, 0.98);
       border-radius: 20px;
-      padding: 60px 40px; /* Increased padding for labels */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      margin-top: 20px;
-      overflow: visible; /* Allow labels to extend outside */
+      padding: 40px 30px 60px 30px; /* Increased bottom padding */
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
+      margin-bottom: 50px; /* Added bottom margin */
+      position: relative;
+      z-index: 10; /* High z-index to ensure visibility */
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 900px; /* Increased minimum height */
     }
+
+
+    .chart-title-html {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1a202c;
+      margin-bottom: 40px;
+      text-align: center;
+      padding: 20px 0;
+      position: relative;
+      z-index: 11;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
 
     .chart-wrapper {
       position: relative;
       width: 100%;
-      height: 600px; /* Fixed height for proper sizing */
-      min-height: 600px;
+      height: 750px; 
+      max-width: 1000px;
       display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 12;
+      overflow: visible; 
+      margin-bottom: 30px; 
     }
 
     #branchPieChart {
       max-width: 100% !important;
       max-height: 100% !important;
-      width: auto !important;
-      height: auto !important;
+      position: relative;
+      z-index: 13; /* Highest z-index for the canvas */
     }
 
-    /* Additional styling for better visual hierarchy */
+    /* Enhanced visual effects */
     .statistics-section::before {
       content: '';
       position: absolute;
@@ -177,208 +208,406 @@
       left: 0;
       right: 0;
       height: 4px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(90deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
       border-radius: 20px 20px 0 0;
+      z-index: 2;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 1200px) {
+    .statistics-section::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+      border-radius: 22px;
+      z-index: -1;
+      opacity: 0.7;
+    }
+
+
+    .main-content {
+      position: relative;
+      z-index: 1;
+      overflow: visible;
+    }
+
+
+    @media (max-width: 768px) {
       .chart-wrapper {
-        height: 600px;
-        min-height: 600px;
+        height: 650px;
       }
       
       .chart-container {
-        padding: 50px 30px;
+        padding: 20px 15px 40px 15px;
+        min-height: 750px;
       }
-    }
-
-    @media (max-width: 768px) {
-      .chart-container {
-        padding: 40px 20px;
-        margin: 20px 0;
-      }
-
-      .chart-wrapper {
-        height: 500px;
-        min-height: 500px;
-      }
-
+      
       .filter-controls {
         flex-direction: column;
         gap: 10px;
       }
-
-      .section-header h2 {
-        font-size: 1.5rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .chart-wrapper {
-        height: 450px;
-        min-height: 450px;
-      }
       
-      .chart-container {
-        padding: 30px 15px;
+      .chart-title-html {
+        font-size: 24px;
       }
     }
+
+    .main-content {
+      padding-bottom: 80px;
+    }
+
     </style>
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
     Chart.register(ChartDataLabels);
 
-    // Branch color palette
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-      '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+        '#3742FA', // Royal Blue
+        '#FF6B35', // Vibrant Orange
+        '#6C5CE7', // Lavender Purple
+        '#FF3838', // Bright Red
+        '#2ECC71', // Green
+        '#F1C40F', // Sunflower Yellow
+        '#E91E63', // Pink
+        '#00BCD4',  // Cyan
+        '#1ABC9C', // Turquoise
+        '#E67E22', // Carrot Orange
+        '#16A085', // Dark Turquoise
+        '#27AE60', // Nephritis Green
+        '#8E44AD', // Wisteria Purple
+        '#FF4757', // Vivid Red
+        '#2ED573', // Emerald Green
+        '#9B59B6', // Purple
+        '#F39C12', // Orange
+        
     ];
 
-    // Custom plugin to draw radial labels with leader lines
+    const rawBranchLabels = {{ branch_labels|default:"[]"|safe }};
+    const branchData = {{ branch_data|default:"[]"|safe }};
+    const chartLabels = [];
+    const detailedLabelsContent = [];
+
+    rawBranchLabels.forEach(labelArray => {
+        if (labelArray.length > 0) {
+            chartLabels.push(labelArray[0]);
+
+            let core = 0, non_core = 0, both = 0;
+            labelArray.slice(1).forEach(detail => {
+                if (detail.startsWith('core:')) {
+                    core = parseInt(detail.split(':')[1]) || 0;
+                } else if (detail.startsWith('non-core:')) {
+                    non_core = parseInt(detail.split(':')[1]) || 0;
+                } else if (detail.startsWith('both:')) {
+                    both = parseInt(detail.split(':')[1]) || 0;
+                }
+            });
+            detailedLabelsContent.push({
+                branch: labelArray[0],
+                core: core,
+                non_core: non_core,
+                both: both
+            });
+        }
+    });
+
     const RadialLabelsPlugin = {
       id: 'radialLabelsPlugin',
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
-        const dataset = chart.data.datasets[0];
+        const ds = chart.data.datasets[0];
         const meta = chart.getDatasetMeta(0);
-        if (!meta.data || meta.data.length === 0) return;
-
-        ctx.save();
         const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
         const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
 
-        meta.data.forEach((arc, index) => {
-          const value = dataset.data[index];
+        // Sort arcs by angle for better positioning
+        const sortedArcs = meta.data.map((arc, i) => ({ arc, i })).sort((a, b) => {
+          const angleA = (a.arc.startAngle + a.arc.endAngle) / 2;
+          const angleB = (b.arc.startAngle + b.arc.endAngle) / 2;
+          
+          const posA = { x: centerX + Math.cos(angleA) * a.arc.outerRadius, y: centerY + Math.sin(angleA) * a.arc.outerRadius };
+          const posB = { x: centerX + Math.cos(angleB) * b.arc.outerRadius, y: centerY + Math.sin(angleB) * b.arc.outerRadius };
+
+          if (posA.y !== posB.y) return posA.y - posB.y;
+          return posA.x - posB.x;
+        });
+
+        const placedLabelBoxes = [];
+
+        sortedArcs.forEach(({ arc, i }) => {
+          const value = ds.data[i];
           if (value === 0) return;
 
+          const details = detailedLabelsContent[i];
+          const branchName = details.branch;
+          
+          const labelLines = [
+            branchName,
+            `Core: ${details.core}`,
+            `Non-Core: ${details.non_core}`,
+            `Both: ${details.both}`
+          ];
+
           const angle = (arc.startAngle + arc.endAngle) / 2;
-          const radius = arc.outerRadius;
-          const label = chart.data.labels[index];
-          const labelText = `${label} (${value})`;
+          const outerRadius = arc.outerRadius;
+          const initialLineOffset = 30;
+          const lineLength = 70;
+          const horizontalExtension = 50;
 
-          // Leader line positions
-          const lineStartX = centerX + Math.cos(angle) * (radius + 5);
-          const lineStartY = centerY + Math.sin(angle) * (radius + 5);
-          const lineEndX = centerX + Math.cos(angle) * (radius + 50);
-          const lineEndY = centerY + Math.sin(angle) * (radius + 50);
-          const extensionX = lineEndX + (Math.cos(angle) > 0 ? 25 : -25);
+          let x_start = centerX + Math.cos(angle) * (outerRadius + initialLineOffset);
+          let y_start = centerY + Math.sin(angle) * (outerRadius + initialLineOffset);
 
-          // Draw leader line
-          ctx.strokeStyle = '#666';
+          let x_mid = centerX + Math.cos(angle) * (outerRadius + initialLineOffset + lineLength);
+          let y_mid = centerY + Math.sin(angle) * (outerRadius + initialLineOffset + lineLength);
+
+          let x_end = x_mid + (Math.cos(angle) > 0 ? horizontalExtension : -horizontalExtension);
+          let y_end = y_mid;
+
+          // Enhanced text box properties
+          ctx.font = '15px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+          const lineHeight = 20;
+          let maxTextWidth = 0;
+          labelLines.forEach((lineText, idx) => {
+              let currentFont;
+              if (idx === 0) { currentFont = 'bold 17px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif'; }
+              else { currentFont = 'normal 14px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif'; }
+              ctx.font = currentFont;
+              maxTextWidth = Math.max(maxTextWidth, ctx.measureText(lineText).width);
+          });
+
+          const boxPadding = 12;
+          const bulletSpace = 18;
+          const boxWidth = maxTextWidth + boxPadding * 2 + bulletSpace;
+          const boxHeight = labelLines.length * lineHeight + boxPadding * 2;
+          const borderRadius = 8;
+
+          let currentBoxX;
+          let textAlign;
+          let bulletXOffset;
+          let textXOffset;
+
+          if (Math.cos(angle) > 0) {
+              textAlign = 'left';
+              currentBoxX = x_end;
+              bulletXOffset = boxPadding + 6;
+              textXOffset = bulletXOffset + 12;
+          } else {
+              textAlign = 'right';
+              currentBoxX = x_end - boxWidth;
+              bulletXOffset = boxWidth - boxPadding - 6;
+              textXOffset = bulletXOffset - 12;
+          }
+
+          let currentBoxY = y_end - boxHeight / 2;
+
+          // Enhanced collision detection
+          let overlapDetected = true;
+          let maxAttempts = 300;
+          const verticalSpacing = 15;
+
+          while (overlapDetected && maxAttempts > 0) {
+              overlapDetected = false;
+              for (let j = 0; j < placedLabelBoxes.length; j++) {
+                  const prevBox = placedLabelBoxes[j];
+                  if (currentBoxX < prevBox.x + prevBox.width &&
+                      currentBoxX + boxWidth > prevBox.x &&
+                      currentBoxY < prevBox.y + prevBox.height + verticalSpacing &&
+                      currentBoxY + boxHeight + verticalSpacing > prevBox.y) {
+
+                      currentBoxY = prevBox.y + prevBox.height + verticalSpacing;
+                      overlapDetected = true;
+                      break;
+                  }
+              }
+              maxAttempts--;
+          }
+          
+          y_end = currentBoxY + boxHeight / 2;
+          placedLabelBoxes.push({ x: currentBoxX, y: currentBoxY, width: boxWidth, height: boxHeight });
+
+          ctx.save();
+
+          // Enhanced leader line with gradient
+          const gradient = ctx.createLinearGradient(x_start, y_start, x_end, y_end);
+          gradient.addColorStop(0, colors[i % colors.length]);
+          gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
+          
+          ctx.strokeStyle = gradient;
           ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
           ctx.beginPath();
-          ctx.moveTo(lineStartX, lineStartY);
-          ctx.lineTo(lineEndX, lineEndY);
-          ctx.lineTo(extensionX, lineEndY);
+          ctx.moveTo(centerX + Math.cos(angle) * (outerRadius + 5), 
+                     centerY + Math.sin(angle) * (outerRadius + 5));
+          ctx.lineTo(x_start, y_start);
+          ctx.lineTo(x_end, y_end);
           ctx.stroke();
 
-          // Text alignment
-          let textAlign = 'center';
-          let finalX = extensionX;
-          if (Math.cos(angle) > 0.1) { textAlign = 'left'; finalX += 8; }
-          else if (Math.cos(angle) < -0.1) { textAlign = 'right'; finalX -= 8; }
 
-          ctx.font = 'bold 13px Segoe UI, Arial, sans-serif';
-          const textWidth = ctx.measureText(labelText).width;
-          const bgPadding = 6;
-          const bgWidth = textWidth + bgPadding * 2;
-          const bgHeight = 24;
-          let bgX = finalX - bgWidth / 2;
-          if (textAlign === 'left') bgX = finalX - bgPadding;
-          if (textAlign === 'right') bgX = finalX - textWidth - bgPadding;
-          const bgY = lineEndY - bgHeight / 2;
-
-          // Draw background
-          ctx.fillStyle = 'rgba(255,255,255,0.95)';
-          ctx.shadowColor = 'rgba(0,0,0,0.15)';
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetX = 2;
-          ctx.shadowOffsetY = 2;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'; 
+          ctx.shadowColor = 'rgba(0,0,0,0.25)';
+          ctx.shadowBlur = 12;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 6;
+          
           ctx.beginPath();
-          const r = 6;
-          ctx.moveTo(bgX + r, bgY);
-          ctx.lineTo(bgX + bgWidth - r, bgY);
-          ctx.quadraticCurveTo(bgX + bgWidth, bgY, bgX + bgWidth, bgY + r);
-          ctx.lineTo(bgX + bgWidth, bgY + bgHeight - r);
-          ctx.quadraticCurveTo(bgX + bgWidth, bgY + bgHeight, bgX + bgWidth - r, bgY + bgHeight);
-          ctx.lineTo(bgX + r, bgY + bgHeight);
-          ctx.quadraticCurveTo(bgX, bgY + bgHeight, bgX, bgY + bgHeight - r);
-          ctx.lineTo(bgX, bgY + r);
-          ctx.quadraticCurveTo(bgX, bgY, bgX + r, bgY);
-          ctx.closePath();
+          ctx.roundRect(currentBoxX, currentBoxY, boxWidth, boxHeight, borderRadius);
           ctx.fill();
-
-          // Border
-          ctx.shadowColor = 'transparent';
-          ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+          
+          // Add stronger border for definition
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1.5;
           ctx.stroke();
+          
+          ctx.shadowColor = 'transparent';
 
-          // Label text
-          ctx.fillStyle = '#2c3e50';
+          // Enhanced colored bullet with glow effect
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.shadowColor = colors[i % colors.length];
+          ctx.shadowBlur = 6;
+          const bulletX = currentBoxX + bulletXOffset;
+          const bulletY = currentBoxY + boxHeight / 2;
+          ctx.beginPath();
+          ctx.arc(bulletX, bulletY, 5, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.shadowColor = 'transparent';
+
+
           ctx.textAlign = textAlign;
-          ctx.textBaseline = 'middle';
-          ctx.fillText(labelText, finalX, lineEndY);
+
+          labelLines.forEach((lineText, idx) => {
+            let fontColor = '#1a1a1a'; 
+            let fontWeight = 'normal';
+            let fontSize = 15;
+
+            if (idx === 0) {
+                fontWeight = 'bold';
+                fontSize = 19;
+                fontColor = '#000000';
+            } else {
+                fontWeight = '600';
+                fontSize = 15;
+                fontColor = '#333333';
+            }
+
+            ctx.font = `${fontWeight} ${fontSize}px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif`;
+            ctx.fillStyle = fontColor;
+
+            let textDrawX;
+            if (textAlign === 'left') {
+                textDrawX = currentBoxX + textXOffset;
+            } else {
+                textDrawX = currentBoxX + textXOffset;
+            }
+            
+            ctx.shadowColor = 'transparent';
+            
+            ctx.fillText(lineText, textDrawX, currentBoxY + boxPadding + (lineHeight * (idx + 0.7)));
+          });
+
+          ctx.restore();
         });
-        ctx.restore();
       }
     };
 
-    // Initialize pie chart
     const ctx = document.getElementById('branchPieChart').getContext('2d');
     new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: {{ branch_labels|default:"[]"|safe }},
+        labels: chartLabels,
         datasets: [{
-          data: {{ branch_data|default:"[]"|safe }},
+          data: branchData,
           backgroundColor: colors,
-          borderColor: '#ffffff',
-          borderWidth: 3,
-          hoverBorderWidth: 5,
-          hoverOffset: 15
+          borderColor: '#000',
+          borderWidth: 2,
+          hoverOffset: 20,
+          hoverBorderWidth: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 60, bottom: 60, left: 60, right: 60 } },
+        layout: {
+          padding: {
+            top: 100,
+            bottom: 120,
+            left: 180,
+            right: 180
+          }
+        },
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: false
+          },
           title: {
-            display: true,
-            text: 'Students Placed by Branch',
-            font: { size: 18, weight: 'bold' },
-            color: '#2c3e50',
-            padding: { top: 10, bottom: 30 }
+            display: false
           },
           tooltip: {
             callbacks: {
-              label: (ctx) => {
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
-                return `${ctx.label}: ${ctx.parsed} students (${pct}%)`;
+              label: function(context) {
+                const branchName = context.label || '';
+                const value = context.parsed;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                return [`${branchName}: ${value} students (${percentage}%)`];
               }
             },
-            backgroundColor: 'rgba(44,62,80,0.95)',
-            titleColor: '#fff',
-            bodyColor: '#fff',
-            borderColor: '#fff',
-            borderWidth: 1,
-            cornerRadius: 8,
-            bodyFont: { size: 13 },
-            titleFont: { size: 14, weight: 'bold' }
+            backgroundColor: 'rgba(26,32,44,0.95)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            cornerRadius: 12,
+            bodyFont: {
+              size: 15,
+              weight: '500'
+            },
+            titleFont: {
+              size: 16,
+              weight: 'bold'
+            },
+            padding: 12
           },
-          datalabels: { display: false }
+          datalabels: {
+            color: function(context) {
+              const bgColor = colors[context.dataIndex % colors.length];
+              return '#fff'; 
+            },
+            formatter: (value, context) => {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+              return `${value}\n(${percentage}%)`;
+            },
+            font: {
+              weight: 'bold',
+              size: 20,
+              family: 'Arial'
+            },
+            display: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = (context.parsed / total) * 100;
+              return percentage > 3;
+            },
+            display:true,
+            align: 'center',
+            padding: 8,
+            textStrokeColor: 'rgba(0,0,0,0.8)',
+            textStrokeWidth: 4
+          }
         },
-        animation: { animateRotate: true, animateScale: true, duration: 1800, easing: 'easeOutQuart' }
+        animation: {
+          animateRotate: true,
+          animateScale: true,
+          duration: 2000,
+          easing: 'easeOutCubic'
+        },
+        cutout: '45%',
+        radius: '80%'
       },
-      plugins: [RadialLabelsPlugin]
+      plugins: [ChartDataLabels, RadialLabelsPlugin]
     });
     </script>
-
   {% endblock content %}
   {% block script %}{% endblock script %}
 </body>

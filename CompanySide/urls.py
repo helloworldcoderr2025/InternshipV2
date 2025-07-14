@@ -20,7 +20,6 @@ urlpatterns = [
     path('fetching_company_invitation_status/', views.fetching_company_invitation_status_view,name="fetching_company_invitation_status"),
     path('get_email_preview/', views.get_email_preview_view,name="get_email_preview"),
     path('send_email/', views.send_email_view,name="send_email"),
-    path('update-response/', views.update_response_view, name='update_response'),
     path('company-data-portal/', views.company_data_portal, name='company_data_portal'),
     path('invitations/', views.company_invitations_portal, name='company_invitations_portal'),
     path('jobprofiles_autocomplete/', views.jobprofiles_autocomplete, name='jobprofiles_autocomplete'),

@@ -304,11 +304,10 @@ def get_email_preview_view(request):
         company_id = data['company_id']
         mode = data['mode']
 
-        company = Company.objects.get(company_id=company_id)
+        company = Company.objects.get(id=company_id)
 
         context = {
             'company': company,
-            'invitation_date': timezone.now().date()
         }
 
         template_name = f"emails/{mode}.txt"
@@ -332,7 +331,7 @@ def send_email_view(request):
         email_body = data['email']
         invited_date = data.get('invited_date')  # Might be None for reminder
 
-        company = Company.objects.get(company_id=company_id)
+        company = Company.objects.get(id=company_id)
 
         if mode == 'invitation':
             if not invited_date:
@@ -345,17 +344,15 @@ def send_email_view(request):
                     'invited_date': invited_date,
                     'no_of_reminders': '0',
                     'response': 'Pending',
-                    'job_profile':company.job_profile,
-                    'job_offer':company.job_offer
                 }
             )
             print("Arrived in invitation")
             # Send email
-            send_custom_email(
-                subject="TNP Invitation",
-                to_email=company.company_email,
-                body=email_body
-            )
+            # send_custom_email(
+            #     subject="TNP Invitation",
+            #     to_email=company.company_email,
+            #     body=email_body
+            # )
             return JsonResponse({'status': 'invitation_sent'})
 
         elif mode == 'reminder':
@@ -365,11 +362,11 @@ def send_email_view(request):
                 invitation.no_of_reminders = str(current_reminders + 1)
                 invitation.save()
 
-                send_custom_email(
-                    subject="TNP Reminder",
-                    to_email=company.company_email,
-                    body=email_body
-                )
+                # send_custom_email(
+                #     subject="TNP Reminder",
+                #     to_email=company.company_email,
+                #     body=email_body
+                # )
                 return JsonResponse({'status': 'reminder_sent'})
             except CompanyInvitations.DoesNotExist:
                 return JsonResponse({'error': 'Invitation not found for reminder'}, status=400)
@@ -380,67 +377,6 @@ def send_email_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from urllib.parse import urlencode
-
-
-RESPONSE_CHOICES = [
-    'Willing to come to campus',
-    'Not willing to come to campus',
-    'Not responded',
-]
-
-def update_response_view(request):
-    invitations = CompanyInvitations.objects.select_related('company').all()
-    selected_invite = None
-
-    # Handle GET request to select an invitation
-    if request.method == 'GET' and 'invitation_key' in request.GET:
-        try:
-            company_id, invited_date, job_profile, job_offer = request.GET['invitation_key'].split('|')
-            selected_invite = get_object_or_404(
-                CompanyInvitations,
-                company_id=company_id,
-                invited_date=invited_date,
-                job_profile=job_profile,
-                job_offer=job_offer
-            )
-        except ValueError:
-            selected_invite = None  # Invalid invitation key format
-
-    # Handle POST request to update response
-    if request.method == 'POST':
-        company_id = request.POST.get('company_id')
-        invited_date = request.POST.get('invited_date')
-        job_profile = request.POST.get('job_profile')
-        job_offer = request.POST.get('job_offer')
-        new_response = request.POST.get('new_response')
-
-        invitation = get_object_or_404(
-            CompanyInvitations,
-            company_id=company_id,
-            invited_date=invited_date,
-            job_profile=job_profile,
-            job_offer=job_offer
-        )
-
-        invitation.response = new_response
-        invitation.save()
-
-        # ✅ Use reverse + urlencode for proper redirect with query string
-        url = reverse('update_response')
-        query_string = urlencode({
-            'invitation_key': f'{company_id}|{invited_date}|{job_profile}|{job_offer}'
-        })
-        return redirect(f'{url}?{query_string}')
-
-    return render(request, 'update_response.html', {
-        'invitations': invitations,
-        'selected_invite': selected_invite,
-        'response_choices': RESPONSE_CHOICES,
-    })
 
 
 def company_data_portal(request):

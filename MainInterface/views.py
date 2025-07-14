@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User,auth
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
+from collections import defaultdict
 from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
 import pandas as pd
 import re
@@ -995,76 +996,76 @@ def tpportal(request):
     invitations = CompanyInvitations.objects.filter(response='Willing to come to campus')
     invitations_pending = CompanyInvitations.objects.filter(response='Not responded')
 
-    branches = ['CSE', 'ECE', 'EEE', 'MECH', 'CIV', 'CHE', 'MME', 'BIO']
+    branch_synonyms = {'mech': 'mec'}  # normalization map
 
-    # Initialize sets to track unique roll numbers per branch and per category
-    branch_core = {branch: set() for branch in branches}
-    branch_non_core = {branch: set() for branch in branches}
-
-    # Fetch all placed registrations
+    # Get placed students (with student details)
     placed_regs = Registrations.objects.filter(result='placed').select_related('rollnumber')
     if selected_year:
         placed_regs = placed_regs.filter(rollnumber__academic_year=selected_year)
+
+    # Find unique student branches dynamically
+    branches = sorted({
+        student.rollnumber.branch.strip().upper()
+        for student in placed_regs
+        if student.rollnumber and student.rollnumber.branch
+    })
+
+    # Initialize counts and per-student flags
+    branch_counts = {branch: {'core': 0, 'non_core': 0, 'both': 0} for branch in branches}
+    student_flags = {branch: {} for branch in branches}
 
     for reg in placed_regs:
         student = reg.rollnumber
         if not student or not student.branch:
             continue
 
-        branch = student.branch.strip().upper()
+        branch_raw = student.branch.strip().upper()
+        branch_norm = student.branch.strip().lower()
+        branch_norm = branch_synonyms.get(branch_norm, branch_norm)
+
         roll_no = student.roll_no
-        if branch not in branches:
-            continue
+        student_flags[branch_raw].setdefault(roll_no, set())
 
-        # Fetch job profiles for this company's placement
-        job_profiles = CompanyJobprofiles.objects.filter(company_id=reg.company_id)
+        profiles = CompanyJobprofiles.objects.filter(company_id=reg.company_id)
 
-        for profile in job_profiles:
-            # Check if branch is eligible for core
-            if profile.eligible_core_branch:
-                eligible = [b.strip().upper() for b in profile.eligible_core_branch.split(',')]
-                if branch in eligible:
-                    branch_core[branch].add(roll_no)
-            # Check if branch is eligible for non-core
-            if profile.eligible_non_core_branch:
-                eligible = [b.strip().upper() for b in profile.eligible_non_core_branch.split(',')]
-                if branch in eligible:
-                    branch_non_core[branch].add(roll_no)
+        for profile in profiles:
+            core = [
+                branch_synonyms.get(b.strip().lower(), b.strip().lower())
+                for b in (profile.eligible_core_branch or '').split(',')
+                if b.strip()
+            ]
+            non_core = [
+                branch_synonyms.get(b.strip().lower(), b.strip().lower())
+                for b in (profile.eligible_non_core_branch or '').split(',')
+                if b.strip()
+            ]
 
-    # === Compute final counts ===
-    branch_counts = {}
+            if branch_norm in core:
+                student_flags[branch_raw][roll_no].add('core')
+
+            if branch_norm in non_core:
+                student_flags[branch_raw][roll_no].add('non-core')
+
+    # Count students per branch based on flags
     for branch in branches:
-        core_set = branch_core[branch]
-        non_core_set = branch_non_core[branch]
-        both_set = core_set & non_core_set  # students placed in both core and non-core
-        core_only_set = core_set - both_set
-        non_core_only_set = non_core_set - both_set
+        for offers in student_flags[branch].values():
+            if 'core' in offers and 'non-core' in offers:
+                branch_counts[branch]['both'] += 1
+            elif 'core' in offers:
+                branch_counts[branch]['core'] += 1
+            elif 'non-core' in offers:
+                branch_counts[branch]['non_core'] += 1
 
-        total_set = core_set.union(non_core_set)  # unique students placed in this branch
-
-        branch_counts[branch] = {
-            'total': len(total_set),
-            'core': len(core_only_set),
-            'non_core': len(non_core_only_set),
-            'both': len(both_set),
-        }
-
-    # === Prepare data for chart (or labels) ===
-    branch_labels = []
-    branch_data = []
-
+    # Prepare data for chart
+    branch_labels, branch_data = [], []
     for branch in branches:
         counts = branch_counts[branch]
-        total = counts['total']
-        core = counts['core']
-        non_core = counts['non_core']
-        both = counts['both']
-
-        # Label shows: Branch((core)+noncore+both)
-        label = f"{branch}(({core})+{non_core}+{both})"
+        total = counts['core'] + counts['non_core'] + counts['both']
+        label = [f"{branch}", f"core:{counts['core']}", f"non-core:{counts['non_core']}", f"both:{counts['both']}"]
         branch_labels.append(label)
         branch_data.append(total)
 
+    # Get distinct academic years for the filter dropdown
     academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('-academic_year')
 
     return render(request, 'T&P_Dashboard.html', {
@@ -1076,7 +1077,7 @@ def tpportal(request):
         'selected_year': selected_year,
     })
 
-
+    
 @login_required
 def verifystudents(request):
     if request.method=="POST":

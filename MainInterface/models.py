@@ -254,3 +254,13 @@ class Student(models.Model):
     class Meta:
         managed = False
         db_table = 'student'
+
+
+class UserType(models.Model):
+    id = models.TextField(primary_key=True)
+    created_at = models.DateTimeField()
+    type = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user_type'
