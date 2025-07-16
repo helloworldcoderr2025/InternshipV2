@@ -11,9 +11,7 @@
 <body>
 
   <div class="top-navigation-header">
-    <div class="main-dashboard-title">
-      <h1>T&P Dashboard</h1>
-    </div>
+
     <div class="navigation-menu">
       <div class="nav-dropdown">
         <a class="nav-dropdown-toggle">Companies</a>
@@ -46,6 +44,38 @@
         <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
         <div><strong>Pending Invitations(Not responded): </strong> {{ pending_invitations }}</div>
       </div>
+      <div class="dashboard-announcements-section">
+        <h2> Announcements</h2>
+        <div class="announcement-list">
+          {% if announcements %}
+            {% for a in announcements %}
+              <div class="announcement-item">
+                <strong>{{ a.title }}</strong>
+                <small>{{ a.created_at|date:"Y-m-d H:i" }}</small>
+                <p>{{ a.message }}</p>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p>No announcements yet.</p>
+          {% endif %}
+        </div>
+
+        <button class="add-announcement-btn">+ Edit / Create New Announcement</button>
+      </div>
+
+      <div id="announcement-modal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn">&times;</span>
+          <h3>Create New Announcement</h3>
+          <form id="add-announcement-form">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="Title" required>
+            <textarea name="message" rows="3" placeholder="Message" required></textarea>
+            <button type="submit">Submit</button>
+          </form>
+        </div>
+      </div>
+
       <div class="statistics-section">
         <div class="section-header">
           <h2>Branch-wise Placement Statistics</h2>
@@ -71,6 +101,58 @@
     </div>
 
     <style>
+    .dashboard-announcements-section {
+      margin-top: 40px;
+      background: #f9fafc;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .announcement-item {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+    }
+
+    .add-announcement-btn {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 25%; top: 25%;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background: white;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      position: relative;
+      align: center;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
     .statistics-section {
       margin-top: 40px;
       padding: 30px;
@@ -607,6 +689,36 @@
       },
       plugins: [ChartDataLabels, RadialLabelsPlugin]
     });
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('announcement-modal');
+      const btn = document.querySelector('.add-announcement-btn');
+      const closeBtn = document.querySelector('.close-btn');
+      const form = document.getElementById('add-announcement-form');
+
+      btn.addEventListener('click', () => modal.style.display = 'block');
+      closeBtn.addEventListener('click', () => modal.style.display = 'none');
+      window.addEventListener('click', e => { if (e.target == modal) modal.style.display = 'none'; });
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        fetch("{% url 'add_announcement' %}", {
+          method: "POST",
+          headers: {'X-CSRFToken': '{{ csrf_token }}' },
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Failed to add announcement.');
+          }
+        })
+        .catch(() => alert('Server error.'));
+      });
+    });
+
     </script>
   {% endblock content %}
   {% block script %}{% endblock script %}

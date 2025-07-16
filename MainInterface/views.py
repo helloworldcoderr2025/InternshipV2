@@ -5,11 +5,11 @@ from django.contrib.auth.models import User,auth
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from collections import defaultdict
-from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
+from django.http import HttpResponse,JsonResponse
 import pandas as pd
 import re
 import json
-from .models import Student,Registrations,Company,AuthUser,Documents
+from .models import Student,Registrations,Company,Documents,CompanyInvitations,CompanyJobprofiles,Announcements
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
@@ -985,12 +985,10 @@ def tplogin(request):
             return redirect("login")
     return render(request,"tplogin.html")
 
-from MainInterface.models import Company,CompanyInvitations,CompanyJobprofiles
-from django.core.paginator import Paginator
-from django.db.models import Count
 
 @login_required 
 def tpportal(request):
+    announcements = Announcements.objects.all().order_by('-created_at')
     selected_year = request.GET.get('academic_year', '')
 
     invitations = CompanyInvitations.objects.filter(response='Willing to come to campus')
@@ -1069,6 +1067,7 @@ def tpportal(request):
     academic_years = Student.objects.values_list('academic_year', flat=True).distinct().order_by('-academic_year')
 
     return render(request, 'T&P_Dashboard.html', {
+        'announcements':announcements,
         'total_count': invitations.count(),
         'pending_invitations': invitations_pending.count(),
         'branch_labels': json.dumps(branch_labels),

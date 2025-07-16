@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import csv, openpyxl, json
-from MainInterface.models import Company, CompanyInvitations, CompanyJobprofiles
+from MainInterface.models import Company, CompanyInvitations, CompanyJobprofiles,Announcements
 from .utils import send_custom_email
 from .serializers import CompanySerializer,CompanyWithProfilesSerializer,CompanyJobprofileSerializer
 
@@ -582,3 +582,17 @@ def update_invitation_response_inline(request):
             return JsonResponse({'status': 'ok'})
         except CompanyInvitations.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invitation not found'}, status=404)
+        
+@csrf_exempt
+def add_announcement_view(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        message = request.POST.get('message')
+        if title and message:
+            Announcements.objects.create(
+                title=title,
+                message=message,
+                created_at=timezone.now()
+            )
+            return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
