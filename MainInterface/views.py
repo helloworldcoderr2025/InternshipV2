@@ -4,13 +4,13 @@ from django.contrib import messages
 from django.contrib.auth.models import User,auth
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
-from collections import defaultdict
-from django.http import HttpResponse,JsonResponse
+from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
 import pandas as pd
 import re
 import json
-from .models import Student,Registrations,Company,Documents,CompanyInvitations,CompanyJobprofiles,Announcements
-from django.contrib.auth.decorators import login_required
+from .models import Student,Registrations,Company,AuthUser,Documents,UserType,Announcements,CompanyJobprofiles,CompanyInvitations
+from django.contrib.auth.decorators import login_required,user_passes_test
+from django.contrib.auth.models import AnonymousUser
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Mails
@@ -20,8 +20,7 @@ import openpyxl
 from django.utils.crypto import get_random_string
 from supabase import create_client
 import urllib.parse
-from django.utils.timezone import now
-from datetime import datetime,timedelta
+import random
 def extract_relative_path(full_url):
     parsed = urllib.parse.urlparse(full_url)
     # Assuming bucket is 'profile-pics', path after '/profile-pics/' is what we want
@@ -707,6 +706,25 @@ levelId = {
     "HR Interview": 7,
     "Offer": 8
     } 
+
+def is_tp(user):
+    if user.is_authenticated:
+        try:
+            userType = UserType.objects.get(id=user.username)
+            return userType.type == "T&P"
+        except UserType.DoesNotExist:
+            return False
+    return False
+
+def is_tp_or_StuCoordinator(user):
+    if user.is_authenticated:
+        try:
+            userType = UserType.objects.get(id=user.username)
+            return userType.type == "T&P" or userType.type=="StudentCoordinator"
+        except UserType.DoesNotExist:
+            return False
+    return False
+
 def index(request):
     studentFound=False
     registered=False
@@ -726,7 +744,7 @@ def index(request):
                     for reg in register:
                         print(4)
                         # print(reg.student)
-                        company=Company.objects.get(company_id=reg.company_id)
+                        company=Company.objects.get(id=reg.company_id)
                         level = levelId.get(reg.level, 0)
                         print("reg.level",reg.level)
                         ob={"companyName":company.name,"status":reg.status,"level":level}
@@ -744,10 +762,18 @@ def index(request):
         print(send)
         return render(request,'index.html',{'studentFound':studentFound,'student':student,'registered':registered,'send':send})
     else:
-        return render(request,'index.html')
+        announcements=list(Announcements.objects.filter())
+        companies={}
+        if not isinstance(request.user, AnonymousUser):
+            jobs=list(CompanyJobprofiles.objects.filter().order_by("-key"))
+            for job in jobs:
+                companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
+            companies=dict(list(companies.items())[:9])
+        return render(request,'index.html',{'announcements':announcements,"companies":companies})
     
 def register(request):
     if request.method=="POST":
+        redirect("otpverification")
         rollNum=request.POST['rollNum']
         branches={1:"BIO",2:"CHE",3:"CIV",4:"CSE",5:"EEE",6:"ECE",7:"MEC",8:"MME"}
         name=request.POST['name']
@@ -901,7 +927,7 @@ def register(request):
             else:
                 gate_url = "null"
 
-            # Results document (optional)
+            # Results document 
             if results:
                 resultsname = f"applications/results/{get_random_string(10)}_{rollNum}.pdf"
                 results_response = supabase.storage.from_('profile-pics').upload(resultsname, results.read())
@@ -922,17 +948,107 @@ def register(request):
 
 
         dept=branches[int(rollNum)//100000]
-        student=Student.objects.create(name=name,roll_no=rollNum,branch=dept,registered=willing,
-                                       job_type=interest,email=email,academic_year=year,password=passwd1,
-                                       gate_rank=gate,mobile=mobile,cgpa=cgpa,placed=placed,backlogs=backlogs,linkedin=linkedin,profilepic=public_url)
-        student.save()
-        docs=Documents.objects.create(rollno=rollNum,results=results_url,scorecard=gate_url)
-        docs.save()
-        user=User.objects.create_user(password=passwd1,username=rollNum+"@student.nitandhra.ac.in",first_name=name,email=email)
-        user.save()
-        return redirect("login")
+        # student=Student.objects.create(name=name,roll_no=rollNum,branch=dept,registered=willing,
+        #                                job_type=interest,email=email,academic_year=year,password=passwd1,
+        #                                gate_rank=gate,mobile=mobile,cgpa=cgpa,placed=placed,backlogs=backlogs,linkedin=linkedin,profilepic=public_url)
+        # student.save()
+        # docs=Documents.objects.create(rollno=rollNum,results=results_url,scorecard=gate_url)
+        # docs.save()
+        # user=User.objects.create_user(password=passwd1,username=rollNum+"@student.nitandhra.ac.in",first_name=name,email=email)
+        # user.save()
+        request.session["reg_data"] = {
+            "name": name,
+            "roll_no": rollNum,
+            "branch":dept,
+            "registered":willing,
+            "job_type":interest,
+            "email":email,
+            "academic_year":year,
+            "password":passwd1,
+            "gate_rank":gate,
+            "mobile":mobile,
+            "cgpa":cgpa,
+            "placed":placed,"backlogs":backlogs,"linkedin":linkedin,"profilepic":public_url,"results":results_url,"scorecard":gate_url
+        }
+        request.session["next_url"] = "complete_registration"
+
+        return redirect("otpverification")
     else:
         return render(request,"register.html")
+
+def completeregistration(request):
+    if request.session.get("otp_success"):
+        data = request.session.get("reg_data")
+        try:
+            # Create Student
+            student = Student.objects.create(
+                name=data["name"],
+                roll_no=data["roll_no"],
+                branch=data["branch"],
+                registered=data["registered"],
+                job_type=data["job_type"],
+                email=data["email"],
+                academic_year=data["academic_year"],
+                password=data["password"],  # optionally hash or securely handle
+                gate_rank=data["gate_rank"],
+                mobile=data["mobile"],
+                cgpa=data["cgpa"],
+                placed=data["placed"],
+                backlogs=data["backlogs"],
+                linkedin=data["linkedin"],
+                profilepic=data["profilepic"]
+            )
+            student.save()
+
+            # Create Documents
+            docs = Documents.objects.create(
+                rollno=data["roll_no"],
+                results=data["results"],
+                scorecard=data["scorecard"]
+            )
+            docs.save()
+
+            # Create Django user
+            user = User.objects.create_user(
+                username=data["roll_no"] + "@student.nitandhra.ac.in",
+                email=data["email"],
+                password=data["password"],
+                first_name=data["name"]
+            )
+            user.save()
+
+            # Cleanup (optional)
+            request.session.pop("reg_data", None)
+
+            messages.success(request, "🎉 Registration completed successfully!")
+            return redirect("login")
+
+        except Exception as e:
+            return HttpResponse(f"An error occurred during registration: {str(e)}")
+    else:
+        data = request.session.get("reg_data")
+        print("hello")
+        try:
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+                    # Delete profilepic
+            profilepic_path = data["profilepic"].split("/storage/v1/object/public/profile-pics/")[-1]
+            supabase.storage.from_("profile-pics").remove([profilepic_path])
+
+                    # Delete results (if not "null")
+            if data["results"] != "null":
+                results_path = data["results"].split("/storage/v1/object/public/profile-pics/")[-1]
+                supabase.storage.from_("profile-pics").remove([results_path])
+
+                    # Delete scorecard (if not "null")
+            if data["scorecard"] != "null":
+                scorecard_path = data["scorecard"].split("/storage/v1/object/public/profile-pics/")[-1]
+                supabase.storage.from_("profile-pics").remove([scorecard_path])
+
+                print("🧹 Files deleted from Supabase due to OTP failure.")
+        except Exception as e:
+            print("Error during Supabase file deletion:", e)
+        return redirect("register")
 
 def login(request):
     if request.method=="POST":
@@ -961,7 +1077,7 @@ def profile(request):
                 try: 
                     register=Registrations.objects.filter(rollnumber__iexact=roll)
                     for reg in register:
-                        company=Company.objects.get(company_id=reg.company_id)
+                        company=Company.objects.get(id=reg.company_id)
                         ob={"companyName":company.name,"level":levelId[reg.level],"status":reg.status}
                         send.append(ob)
                 except Exception as e:
@@ -975,16 +1091,58 @@ def tplogin(request):
         email=request.POST['email']
         password=request.POST['password']
         user=auth.authenticate(username=email,password=password)
-        print(email)
-        print(password)
         if user is not None :
             auth.login(request,user)
             return redirect("tpportal")
         else :
             messages.info(request,'Invalid Credentials !!!')
-            return redirect("login")
+            return redirect("tplogin")
     return render(request,"tplogin.html")
 
+def otpverification(request):
+    if request.method == "POST":
+        user_otp = request.POST.get("otp")
+        actual_otp = request.session.get("otp")
+
+        if user_otp == str(actual_otp):
+            messages.success(request, "✅ OTP Verified Successfully.")
+            request.session["otp_success"] = True
+            return redirect("complete_registration")
+        else:
+            messages.error(request, "❌ Invalid OTP. Please try again.")
+            request.session["otp_success"] = False
+            return redirect("complete_registration")
+    else:
+        # Generate OTP and store in session
+        otp = random.randint(1000, 9999)
+        request.session["otp"] = otp
+
+        # Send OTP via email
+        try:
+            recipient_email = "dummymailforme4321@gmail.com"  # Replace with actual student email
+            subject = 'OTP for Registration'
+            message = f"""
+Dear Student,
+
+Your One-Time Password (OTP) for registration to the Student Placement Portal is: {otp}
+
+⏳ Note: This OTP is valid for 15 minutes.
+
+Thank you.
+
+Best Regards,  
+Training and Placement Cell  
+National Institute of Technology Andhra Pradesh
+"""
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient_email], fail_silently=False)
+        except Exception as e:
+            print("Error sending email:", e)
+
+        return render(request, "otp.html")
+
+
+@login_required(login_url='tplogin')
+@user_passes_test(is_tp, login_url='tplogin')
 
 @login_required 
 def tpportal(request):
@@ -1076,8 +1234,8 @@ def tpportal(request):
         'selected_year': selected_year,
     })
 
-    
-@login_required
+@login_required(login_url='tplogin')
+@user_passes_test(is_tp_or_StuCoordinator, login_url='tplogin')
 def verifystudents(request):
     if request.method=="POST":
         print(request.POST)
@@ -1160,11 +1318,12 @@ def verifystudents(request):
                     print(f"Documents row for rollno {rollno} deleted.")
 
             student.save()
-            return redirect("tpportal")
+            return redirect("navigatetoindex")
                 
 
     else:
-        return render(request,"verifystudents.html")
+        pendingStudents=Student.objects.filter(verified='No').count()
+        return render(request,"verifystudents.html",{"pendingStudents":pendingStudents})
 
 def displayStatus(request,reg,roll):
     send=[]
@@ -1177,7 +1336,7 @@ def displayStatus(request,reg,roll):
                     #     company=Company.objects.get(tbl_id=request.company_id)
                     #     ob={"companyName":company.name,"level":levelId[reg.level],"status":reg.status}
                     #     send.append(ob)
-                    company=Company.objects.get(company_id=register.company_id)
+                    company=Company.objects.get(id=register.company_id)
                     ob={"companyName":company.name,"level":levelId[register.level],"status":register.status}
                     send.append(ob)
                 except Exception as e:
@@ -1186,6 +1345,7 @@ def displayStatus(request,reg,roll):
     return send
 
 @login_required(login_url='tplogin')
+@user_passes_test(is_tp, login_url='tplogin')
 def updatestudentplacement(request):
     if request.method == "POST":
         # Handle CSV or XLSX upload
@@ -1348,7 +1508,7 @@ def notifications(request):
         send.append(mail.message)
     return render(request,"notifications.html",{"send":send})
 
-@login_required(login_url='tplogin')
+@login_required(login_url='login')
 def stats(request):
     roll=request.user.username.split("@")[0]
     register=Registrations.objects.filter(rollnumber=roll)
@@ -1374,7 +1534,7 @@ def stats(request):
         if reg.status=="Rejected":
             rej=rej+1
         if reg.status!="Accepted" and reg.status!="Rejected":
-            comp=Company.objects.get(company_id=reg.company_id)
+            comp=Company.objects.get(id=reg.company_id)
             companies.append(comp)
     if app!=0:
         percent=((app-acc-rej)/app)*100
@@ -1408,3 +1568,182 @@ def editprofile(request):
 
     else:
         return render(request,"editprofile.html")
+
+def studentcoordinatorlogin(request):
+    if request.method=="POST":
+        email=request.POST['email']
+        password=request.POST['password']
+        user_type = UserType.objects.filter(id=email).first()
+        if user_type and user_type.type == "StudentCoordinator":
+            user=auth.authenticate(username=email,password=password)
+            if user is not None :
+                auth.login(request,user)
+                return render(request,"studentCoordinator.html")
+            else :
+                messages.info(request,'Invalid Credentials !!!')
+                return redirect("studentcoordinatorlogin")
+        else :
+            messages.info(request,'Invalid Credentials !!!')
+            return redirect("login")
+    return render(request,"studentCoordinatorLogin.html")
+
+def studentcoordinatorverifystudents(request):
+    user =  Student.objects.filter(roll_no=request.user.username.split('@')[0]).first()
+    students=Student.objects.filter(verified="No", branch=user.branch)
+    return render(request,'verifystudents.html',{"branch":user.branch,"pendingStudents":students.count(),"students":students})
+
+@login_required(login_url='tplogin')
+@user_passes_test(is_tp, login_url='tplogin')
+def assignstudentcoordinator(request):
+    if request.method=="POST":
+        if 'change' in request.POST:
+            rollNo=request.POST.get('rollNo')
+            usrtype=UserType.objects.filter(id=rollNo+"@student.nitandhra.ac.in").first()
+            if usrtype.type=="StudentCoordinator":
+                usrtype.type="Student"
+                usrtype.save()
+                mssg="Sorry!! to Say that You have been demoted from Student Coordinator Position, Thanks For Your Continuous Effort"
+            else:
+                usrtype.type="StudentCoordinator"
+                usrtype.save()
+                mssg="Congratulations !! You have been appointed as the Student Coordinator for your Department. For more details contact T&P"
+            subject="Update Regarding the Student Coordinator Position For Your Department"
+            sendTo="dummymailforme4321@gmail.com"
+            message=f"""
+{mssg}
+Best Regards,
+Training and Placement Cell
+National Institute of Technology Andhra Pradesh
+"""
+            send_mail(subject,message,settings.DEFAULT_FROM_EMAIL,recipient_list=[sendTo],fail_silently=False)
+            return render(request,"assignstudentcoordinator.html")
+        elif "branch" in request.POST:
+            branch=request.POST.get('branch')
+            branchid={"BIO":"1","CHE":"2","CIV":"3","CSE":"4","EEE":"5","ECE":"6","MEC":"7","MME":"8"}
+            usrtype=UserType.objects.filter(type="StudentCoordinator")
+            students=[]
+            for usr in usrtype:
+                if usr.id[0]==branchid[branch]:
+                    roll=(usr.id.split('@')[0])
+                    stu=Student.objects.filter(roll_no=roll).first()
+                    student={"roll":roll,"name":stu.name}
+                    students.append(student)
+            return render(request,"assignstudentcoordinator.html",{"students":students})
+        else:
+            rollNo=request.POST['rollNumber']
+            student=Student.objects.filter(roll_no=rollNo).first()
+            usrtype=UserType.objects.filter(id=rollNo+"@student.nitandhra.ac.in").first()
+            return render(request,"assignstudentcoordinator.html",{"rollNo":rollNo,"name":student.name,"branch":student.branch,"type":usrtype.type})
+    
+    return render(request,"assignstudentcoordinator.html")
+
+def forgetpassword(request):
+    if request.method=="POST":
+        if "email" in request.POST:
+            email=request.POST['email']
+            otp=random.randint(1000,9999)
+            request.session['otp']=otp
+            request.session['email']=email
+            subject="OTP for Changing Password"
+            sendTo="dummymailforme4321@gmail.com"
+            message=f"""
+Dear Student,
+    OTP for Changing the Password is {otp}. It is Valid for 15 min
+
+Thank You.
+Best Regards,
+Training & Placement Cell
+National Institute of Technology Andhra Pradesh
+"""
+            send_mail(subject,message,settings.DEFAULT_FROM_EMAIL,[sendTo],fail_silently=False)
+            return render(request,"forgetPassword.html",{"otp":True})
+        elif "otp" in request.POST:
+            usr_otp=request.POST['otp']
+            original_otp=request.session['otp']
+            if int(usr_otp)==original_otp:
+                return render(request,"forgetPassword.html",{"password":True})
+            else:
+                messages.error(request,"Enter Correct OTP")
+                return render(request,"forgetPassword.html",{"otp":True})
+
+        else:
+            pwd1=request.POST['password1']
+            pwd2=request.POST['password2']
+            if pwd1!=pwd2:
+                messages.error(request,"Both Passwords Should Match")
+                return render(request,"forgetPassword.html",{"password":True})
+            else:
+                email=request.session['email']
+                roll=email.split('@')[0]
+                stu=Student.objects.filter(roll_no=roll).first()
+                usr=User.objects.filter(username=email).first()
+                usr.set_password(pwd1)
+                usr.save()
+                stu.password=pwd1
+                stu.save()
+                subject="Password Updated Successfully!!"
+                sendTo="dummymailforme4321@gmail.com"
+                message=f"""
+Dear Student,
+    Password Updated Successfully. Kindly Login using updated password.
+Thank You.
+
+Best Regards,
+Training & Placement Cell,
+National Institute of Technology Andhra Pradesh."""
+                send_mail(subject,message,settings.DEFAULT_FROM_EMAIL,[sendTo],fail_silently=False)
+                request.session.clear()
+                return redirect("login")
+    else:
+        return render(request,"forgetPassword.html")
+
+def navigatetoindex(request):
+    print("userr",request.user)
+    if isinstance(request.user, AnonymousUser):
+        return redirect('index')
+    else:
+        user=UserType.objects.filter(id=request.user.username).first()
+        if(user.type=="Student"):
+            return redirect('index')
+        elif(user.type=="StudentCoordinator"):
+            return render(request,'studentcoordinator.html')
+        else:
+            return redirect('tpportal')
+    
+@login_required(login_url='tplogin')
+@user_passes_test(is_tp, login_url='tplogin')
+def addannouncements(request):
+    if request.method=="POST":
+        text=request.POST['text']
+        document=request.FILES['document']
+        # supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+        #     # Profile picture
+        #     filename = f"profilepics/{get_random_string(10)}_{profilepic.name}"
+        #     upload_response = supabase.storage.from_('profile-pics').upload(filename, profilepic.read())
+        supabase=create_client(settings.SUPABASE_URL,settings.SUPABASE_KEY)
+        filename=f"announcements/{get_random_string(10)}_{document.name}"
+        upload_response=supabase.storage.from_('profile-pics').upload(filename,document.read())
+        if (upload_response):
+            document_url=supabase.storage.from_('profile-pics').get_public_url(filename)
+            announcement=Announcements.objects.create(text=text,document_url=document_url)
+            announcement.save()
+            messages.success(request,"New Announcement added")
+            return redirect('navigatetoindex')
+        else:
+            messages.error(request,"Unable to add Announcement, Try Again later")
+            return redirect('addannouncements')
+    else:
+        return render(request,'addannouncements.html')
+    
+def announcements(request):
+    announcements=list(Announcements.objects.filter())
+    return render(request,'announcements.html',{"announcements":announcements})
+
+@login_required(login_url="login")
+def registerforplacements(request):
+    companies={}
+    jobs=list(CompanyJobprofiles.objects.filter().order_by("-key"))
+    for job in jobs:
+        companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
+    return render(request,'registerforplacements.html',{"companies":companies})

@@ -1,67 +1,177 @@
-{%load static%}
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Placement Portal</title>
+    <title>Placement Portal - NIT Andhra Pradesh</title>
+    <style>
+      .announcement-scroll-box {
+        height: 150px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .announcement-scroll-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        animation: scroll-up 10s linear infinite;
+      }
+
+      .announcement-scroll-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+        color: #333;
+        font-size: 15px;
+      }
+
+      /* Animation Keyframes */
+      @keyframes scroll-up {
+        0% {
+          transform: translateY(0%);
+        }
+        100% {
+          transform: translateY(-100%);
+        }
+      }
+    </style>
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
       crossorigin="anonymous"
     />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
+      :root {
+        --nitap-blue: #003366;
+        --nitap-orange: #ff6600;
+        --nitap-light: #f8f9fa;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--nitap-blue),
+          var(--nitap-orange)
+        );
+        color: white;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .header h2 {
+        font-weight: 500;
+        font-size: 1.8rem;
+      }
+
+      .navbar {
+        background-color: white !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 0.5rem 1rem;
+      }
+
+      .navbar-brand {
+        font-weight: 600;
+        color: var(--nitap-blue) !important;
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar-brand img {
+        margin-right: 10px;
+      }
+
+      .nav-link {
+        font-weight: 500;
+        color: #555 !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 4px;
+        margin: 0 0.2rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-link i {
+        margin-right: 6px;
+        font-size: 0.9rem;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background-color: rgba(0, 51, 102, 0.1);
+        color: var(--nitap-blue) !important;
+      }
+
+      .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .dropdown-item {
+        padding: 0.5rem 1.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px;
+        width: 18px;
+        text-align: center;
+      }
+
+      .dropdown-item:hover {
+        background-color: rgba(0, 51, 102, 0.1);
+        color: var(--nitap-blue);
+      }
+
+      .user-greeting {
+        color: var(--nitap-blue);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem; /* Text size - adjust as needed */
+        margin-right: 15px; /* Space between greeting and profile icon */
+        padding: 0.3rem 0.8rem; /* Inner spacing */
+        border-radius: 4px; /* Rounded corners */
+        transition: all 0.3s ease; /* Smooth hover effect */
+      }
+
+      .user-greeting:hover {
+        background-color: rgba(0, 51, 102, 0.1); /* Light blue on hover */
+      }
+
+      .user-greeting i {
+        margin-right: 8px; /* Space between icon and text */
+        font-size: 1rem; /* Icon size */
+      }
+
+      /* Additional styles from your second template */
       .excepttitle {
         background: url("{% static 'images/nit.jpg' %}") no-repeat center center;
         background-size: 30%;
         background-attachment: fixed;
         background-color: #f4f6f9;
-      }
-
-      h1,
-      h2 {
-        text-align: center;
-        margin-bottom: 0.5em;
-        color: #0d6efd;
-        font-weight: 700;
-        animation: fadeInDown 1s ease-in-out;
-      }
-
-      @keyframes fadeInDown {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .navbar {
-        background-color: #ffffff;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
-      }
-
-      .navbar-brand {
-        font-weight: bold;
-        font-size: 1.4rem;
-        color: #0d6efd;
-      }
-
-      .nav-link {
-        color: #343a40;
-        transition: color 0.3s ease-in-out;
-      }
-
-      .nav-link:hover {
-        color: #0d6efd;
-      }
-
-      .dropdown-menu {
-        border-radius: 10px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .form-section {
@@ -82,42 +192,11 @@
         transform: scale(1.01);
       }
 
-      input[type='text'] {
-        width: 100%;
-        padding: 12px 14px;
-        margin-top: 10px;
-        border: 1px solid #ced4da;
-        border-radius: 8px;
-        transition: border-color 0.3s ease-in-out, box-shadow 0.3s;
-      }
-
-      input[type='text']:focus {
-        border-color: #0d6efd;
-        outline: none;
-        box-shadow: 0 0 5px rgba(13, 110, 253, 0.4);
-      }
-
-      input[type='submit'] {
-        width: 100%;
-        padding: 12px;
-        margin-top: 20px;
-        border-radius: 8px;
-        background-color: #0d6efd;
-        color: white;
-        border: none;
-        font-weight: bold;
-        transition: background-color 0.3s;
-      }
-
-      input[type='submit']:hover {
-        background-color: #0b5ed7;
-      }
-
       .student-card {
         max-width: 700px;
         margin: 30px auto;
         padding: 25px 30px;
-        border-left: 6px solid #0d6efd;
+        border-left: 6px solid var(--nitap-blue);
         background-color: #ffffff;
         border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -146,7 +225,7 @@
       }
 
       thead th {
-        background-color: #0d6efd;
+        background-color: var(--nitap-blue);
         color: white;
         text-align: center;
         font-size: 16px;
@@ -164,21 +243,14 @@
         background-color: #f1f5ff;
       }
 
-      p {
-        color: red;
-        font-weight: bold;
-        padding-left: 10px;
-      }
-
-      .navbar-nav .dropdown-menu .dropdown-item:hover {
-        background-color: #f0f8ff;
-      }
-
       /* Responsive tweaks */
       @media screen and (max-width: 768px) {
-        h1,
-        h2 {
-          font-size: 1.25rem;
+        .header h1 {
+          font-size: 1.8rem;
+        }
+
+        .header h2 {
+          font-size: 1.4rem;
         }
 
         .form-card,
@@ -196,122 +268,295 @@
           padding: 10px;
         }
       }
+      /* Add to your existing CSS */
+      .nav-link .fa-bell {
+        font-size: 1.1rem;
+        color: var(--nitap-blue);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover .fa-bell {
+        color: var(--nitap-orange);
+        transform: scale(1.1);
+      }
+
+      /* Notification badge */
+      .badge {
+        font-size: 0.6rem;
+        padding: 0.2em 0.4em;
+      }
+      /* Ensure all nav items have the same height */
+      .navbar-nav .nav-item {
+        height: 40px; /* Adjust as needed */
+        display: flex;
+        align-items: center;
+      }
+
+      /* Style for the notification bell */
+      .nav-link .fa-bell {
+        font-size: 1.25rem;
+        color: var(--nitap-blue);
+        transition: all 0.2s ease;
+      }
+
+      .nav-link:hover .fa-bell {
+        color: var(--nitap-orange);
+        transform: scale(1.1);
+      }
+
+      /* Profile image hover effect */
+      .nav-link img {
+        transition: all 0.2s ease;
+      }
+
+      .nav-link:hover img {
+        transform: scale(1.05);
+        box-shadow: 0 0 8px rgba(0, 51, 102, 0.2);
+      }
     </style>
   </head>
   <body>
-    <h1 style="text-align: center">
-      National Institute of Technology, Andhra Pradesh
-    </h1>
-    <h2 style="text-align: center">Placement Portal</h2>
-    <!-- navbar -->
-    <nav class="navbar navbar-expand-lg bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Statistics</a>
+    <div class="header text-center">
+      <h1>National Institute of Technology, Andhra Pradesh</h1>
+      <h2>Placement Portal</h2>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+      <div class="container">
+        <a class="navbar-brand" href="stats">
+          <img
+            src="{% static 'images/nit.jpg' %}"
+            alt="NITAP Logo"
+            height="40"
+          />
+          Statistics
+        </a>
         <button
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarScroll"
-          aria-controls="navbarScroll"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+          data-bs-target="#navbarContent"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarScroll">
-          <ul
-            class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll"
-            style="--bs-scroll-height: 100px"
-          >
-            <!-- Home -->
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <!-- Left side items -->
+          <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="">Home</a>
+              <a
+                class="nav-link {% if request.path == '/' %}active{% endif %}"
+                href="{% url 'index' %}"
+              >
+                <i class="fas fa-home"></i> Home
+              </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="home_page_view">Data Query Portal</a>
+              <a
+                class="nav-link {% if 'home_page_view' in request.path %}active{% endif %}"
+                href="home_page_view"
+              >
+                <i class="fas fa-database"></i> Data Query Portal
+              </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/">Register for Placements</a>
+              <a
+                class="nav-link {% if 'register' in request.path %}active{% endif %}"
+                href="registerforplacements"
+              >
+                <i class="fas fa-user-plus"></i> Register for Placements
+              </a>
             </li>
           </ul>
+
+          <!-- Right side items -->
           <ul class="navbar-nav ms-auto d-flex align-items-center">
             {% if user.is_authenticated %}
             <!-- Greeting -->
-            <li class="nav-item">
-              <a class="nav-link active" style="color: blueviolet">
-                Hello {{ user.first_name }} !!
+            <li class="nav-item d-flex align-items-center">
+              <span class="user-greeting d-flex align-items-center">
+                <i class="fas fa-hand-peace me-2"></i> Hello {{user.first_name}}
+                !!
+              </span>
+            </li>
+
+            <!-- Notification Bell -->
+            <li class="nav-item d-flex align-items-center mx-2">
+              <a
+                class="nav-link position-relative p-0"
+                href="{% url 'notifications' %}"
+              >
+                <i class="fas fa-bell fs-5"></i>
+                <span
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                >
+                  2
+                  <span class="visually-hidden">unread notifications</span>
+                </span>
               </a>
             </li>
 
             <!-- Profile dropdown -->
-            <li class="nav-item dropdown">
+            <li class="nav-item dropdown d-flex align-items-center">
               <a
-                class="nav-link dropdown-toggle d-flex align-items-center"
+                class="nav-link dropdown-toggle p-0"
                 href="#"
-                id="navbarDropdown"
                 role="button"
                 data-bs-toggle="dropdown"
-                aria-expanded="false"
               >
                 <img
-                  src="{% static 'images/profile.png' %}"
-                  class="rounded-circle"
+                  src="{% if student and student.profilepic %}/media/{{ student.profilepic }}{% else %}{% static 'images/profile.png' %}{% endif %}"
+                  class="rounded-circle border border-2 border-primary"
                   alt="Profile"
                   width="35"
                   height="35"
                 />
               </a>
-              <ul
-                class="dropdown-menu dropdown-menu-end"
-                aria-labelledby="navbarDropdown"
-              >
-                <li><a class="dropdown-item" href="profile">Profile</a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="profile"
+                    ><i class="fas fa-user me-2"></i> Profile</a
+                  >
+                </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                  <a class="dropdown-item" href="{% url 'logout' %}"
+                    ><i class="fas fa-sign-out-alt me-2"></i> Logout</a
+                  >
                 </li>
               </ul>
             </li>
-
             {% else %}
-            <!-- Login dropdown -->
+            <!-- ... existing login/register items ... -->
             <li class="nav-item dropdown">
               <a
                 class="nav-link dropdown-toggle"
                 href="#"
                 role="button"
                 data-bs-toggle="dropdown"
-                aria-expanded="false"
               >
-                Login
+                <i class="fas fa-sign-in-alt"></i> Login
               </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="login">Student Login</a></li>
-                <li><a class="dropdown-item" href="tplogin">T&P Login</a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="login"
+                    ><i class="fas fa-user-graduate"></i> Student Login</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="studentcoordinatorlogin"
+                    ><i class="fas fa-user-tie"></i> Student Coordinator
+                    Login</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="tplogin"
+                    ><i class="fas fa-user-tie"></i> T&P Login</a
+                  >
+                </li>
               </ul>
             </li>
-
-            <!-- Register link -->
             <li class="nav-item">
-              <a class="nav-link" href="register">Register</a>
+              <a class="nav-link" href="register">
+                <i class="fas fa-user-plus"></i> Register
+              </a>
             </li>
             {% endif %}
           </ul>
-
-          <!-- <form class="d-flex" role="search">
-            <input                                                                                                                                                                                              
-              class="form-control me-2"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button class="btn btn-outline-success" type="submit">
-              Search
-            </button>
-          </form> -->
         </div>
       </div>
     </nav>
+
+    <div class="container my-5">
+      <div class="card shadow border-0">
+        <div class="card-body">
+          <h4 class="card-title text-primary mb-3">
+            <i class="fas fa-bullhorn text-warning me-2"></i> Announcements
+          </h4>
+
+          <div class="announcement-scroll-box">
+            <ul class="announcement-scroll-list">
+              {% for announcement in announcements %}
+              <li>
+                <strong>{{ announcement.text }}</strong>
+                {% if announcement.document_url %}
+                <a
+                  href="https://docs.google.com/gview?url={{announcement.document_url}}&embedded=true"
+                  class="text-decoration-none"
+                  target="_blank"
+                >
+                  📄 View Document
+                </a>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <a
+            href="{% url 'announcements' %}"
+            class="btn btn-primary text-white text-center"
+          >
+            <i class="fas fa-bullhorn me-2"></i> View All Announcements
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-5">
+      <h3 class="text-center text-primary mb-4">Latest Company Job Profiles</h3>
+
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for key, company in companies.items|slice:":10" %}
+        <div class="col">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="card-title text-dark">
+                {{ company.comapanyname.0.name }}
+              </h5>
+              <p class="card-text">
+                <strong>Job Profile:</strong> {{ company.job.job_profile }}<br />
+                <strong>Type:</strong> {{ company.job.type_of_company }}<br />
+                {% if company.job.max_package_offered %}
+                <strong>Max Package:</strong>
+                ₹{{company.job.max_package_offered}} LPA<br />
+                {% endif %} {% if company.job.eligible_passouts %}
+                <strong>Passouts:</strong> {{ company.job.eligible_passouts}}<br />
+                {% endif %}
+                <strong> Eligible Branches:</strong>
+                {{company.job.eligible_core_branch}}<br />
+                <strong> Job Offer:</strong>
+                {{company.job.job_offer}}<br />
+              </p>
+
+              {% if company.job.google_form_link %}
+              <a
+                href="{{ company.job.google_form_link }}"
+                class="btn btn-primary btn-sm"
+                target="_blank"
+                >Apply Now</a
+              >
+              {% endif %} {% if company.job.brochure_path %}
+              <a
+                href="{{ company.job.brochure_path }}"
+                class="btn btn-outline-secondary btn-sm mt-2"
+                target="_blank"
+                >View Brochure</a
+              >
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- View All Companies Button -->
+      <div class="text-center mt-4">
+        <a class="btn btn-primary" href="registerforplacements"
+          >View All Companies</a
+        >
+      </div>
+    </div>
+
     <!-- <div class="excepttitle">
       <form action="" method="POST">
         {%csrf_token%}
@@ -432,101 +677,6 @@
       </div>
     </div>
     {%endif%} -->
-
-    <div
-      id="cardCarousel"
-      class="carousel slide"
-      data-bs-ride="carousel"
-      data-bs-interval="3000"
-    >
-      <div class="carousel-inner">
-        <!-- Slide 1 -->
-        <div class="carousel-item active">
-          <div class="d-flex justify-content-center gap-3">
-            <div class="card" style="width: 18rem">
-              <div class="card-body">
-                <h5 class="card-title">Company 1</h5>
-                <p class="card-text">job details Goes here</p>
-                <img
-                  src="{% static 'images/brochure1.png' %}"
-                  style="width: 100%"
-                  alt="Brochure"
-                />
-
-                <a href="#" class="btn btn-primary">Register</a>
-              </div>
-            </div>
-
-            <div class="card" style="width: 18rem">
-              <div class="card-body">
-                <h5 class="card-title">Company 2</h5>
-                <p class="card-text">job details Goes here</p>
-                <img
-                  src="{% static 'images/brochure1.png' %}"
-                  style="width: 100%"
-                  alt="Brochure"
-                />
-
-                <a href="#" class="btn btn-primary">Register</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Slide 2 -->
-        <div class="carousel-item active">
-          <div class="d-flex justify-content-center gap-3">
-            <div class="card" style="width: 18rem">
-              <div class="card-body">
-                <h5 class="card-title">Company 3</h5>
-                <p class="card-text">job details Goes here</p>
-                <img
-                  src="{% static 'images/brochure1.png' %}"
-                  style="width: 100%"
-                  alt="Brochure"
-                />
-
-                <a href="#" class="btn btn-primary">Register</a>
-              </div>
-            </div>
-
-            <div class="card" style="width: 18rem">
-              <div class="card-body">
-                <h5 class="card-title">Company 4</h5>
-                <p class="card-text">job details Goes here</p>
-                <img
-                  src="{% static 'images/brochure1.png' %}"
-                  style="width: 100%"
-                  alt="Brochure"
-                />
-
-                <a href="#" class="btn btn-primary">Register</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add more slides if needed -->
-      </div>
-
-      <!-- Carousel controls -->
-      <button
-        class="carousel-control-prev"
-        type="button"
-        data-bs-target="#cardCarousel"
-        data-bs-slide="prev"
-      >
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button
-        class="carousel-control-next"
-        type="button"
-        data-bs-target="#cardCarousel"
-        data-bs-slide="next"
-      >
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"

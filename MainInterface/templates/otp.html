@@ -135,65 +135,38 @@
     <div class="header text-center">
       <h1>National Institute of Technology, Andhra Pradesh</h1>
       <h3>Placement Portal</h3>
-      <h3>Student Login</h3>
+      <h3>OTP Verification</h3>
     </div>
 
     <div class="container">
       <div class="login-card">
         <h4 class="text-center mb-4" style="color: var(--nitap-blue)">
-          <i class="fas fa-user-tie"></i> Student Login
+          <i class="fas fa-user-tie"></i> OTP has been sent to the Institute
+          Email ID
         </h4>
-        <form method="POST" action="login">
+        <form method="POST" action="otpverification">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="email" class="form-label">Institute Email ID</label>
+            <h6 class="text-center mb-4" style="color: var(--nitap-blue)">
+              <i class="fas fa-user-tie"></i>
+            </h6>
+            <label for="email" class="form-label"> Enter OTP</label>
             <div class="input-group">
               <span class="input-group-text"
                 ><i class="fas fa-envelope"></i
               ></span>
               <input
                 required
-                type="email"
                 class="form-control"
                 id="email"
-                name="email"
-                placeholder="you@example.com"
+                name="otp"
+                placeholder="####"
               />
             </div>
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input
-                required
-                name="password"
-                type="password"
-                class="form-control"
-                id="password"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-          <div class="mb-3 form-check">
-            <input
-              type="checkbox"
-              class="form-check-input"
-              id="robotCheck"
-              required
-            />
-            <label class="form-check-label" for="robotCheck"
-              >I am Not a Robot</label
-            >
           </div>
           <button type="submit" class="btn btn-primary login-btn">
             <i class="fas fa-sign-in-alt"></i> Login
           </button>
-          <div class="links">
-            <a href="register">New User?</a>
-            <span class="divider">|</span>
-            <a href="forgetpassword">Forgot Password?</a>
-          </div>
           {% for mssg in messages %}
           <div class="message-box {% if mssg.tags %}{{ mssg.tags }}{% endif %}">
             <i class="fas fa-exclamation-circle"></i> {{ mssg }}

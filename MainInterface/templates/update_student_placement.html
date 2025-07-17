@@ -1,65 +1,240 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>T&P Portal</title>
+    <title>T&P Portal - NIT Andhra Pradesh</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
       crossorigin="anonymous"
     />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --nitap-blue: #003366;
+        --nitap-orange: #ff6600;
+        --nitap-light: #f8f9fa;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--nitap-blue),
+          var(--nitap-orange)
+        );
+        color: white;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .header h2 {
+        font-weight: 500;
+        font-size: 1.8rem;
+      }
+
+      .navbar {
+        background-color: white !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 0.5rem 1rem;
+      }
+
+      .navbar-brand {
+        font-weight: 600;
+        color: var(--nitap-blue) !important;
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar-brand img {
+        margin-right: 10px;
+      }
+
+      .nav-link {
+        font-weight: 500;
+        color: #555 !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 4px;
+        margin: 0 0.2rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-link i {
+        margin-right: 6px;
+        font-size: 0.9rem;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background-color: rgba(0, 51, 102, 0.1);
+        color: var(--nitap-blue) !important;
+      }
+
+      .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .dropdown-item {
+        padding: 0.5rem 1.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px;
+        width: 18px;
+        text-align: center;
+      }
+
+      .dropdown-item:hover {
+        background-color: rgba(0, 51, 102, 0.1);
+        color: var(--nitap-blue);
+      }
+
+      .user-greeting {
+        color: var(--nitap-blue);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+      }
+
+      .user-greeting i {
+        margin-right: 6px;
+      }
+    </style>
   </head>
   <body>
-    <h1 style="text-align: center">
-      National Institute of Technology, Andhra Pradesh
-    </h1>
-    <h2 style="text-align: center">Placement Portal</h2>
-    <nav class="navbar navbar-expand-lg bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Statistics</a>
+    <div class="header text-center">
+      <h1>National Institute of Technology, Andhra Pradesh</h1>
+      <h2>Training & Placement Portal</h2>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <img
+            src="{% static 'images/nit.jpg' %}"
+            alt="NITAP Logo"
+            height="40"
+          />
+          T&P Cell
+        </a>
         <button
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarScroll"
-          aria-controls="navbarScroll"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+          data-bs-target="#navbarContent"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarScroll">
-          <ul
-            class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll"
-            style="--bs-scroll-height: 100px"
-          >
-            <!-- Home -->
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <!-- Left side items -->
+          <ul class="navbar-nav me-auto">
             <li class="nav-item">
               <a
-                class="nav-link active"
-                aria-current="page"
+                class="nav-link {% if request.path == '/' %}active{% endif %}"
                 href="{% url 'tpportal' %}"
-                >Home</a
               >
+                <i class="fas fa-home"></i> Home
+              </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="home_page_view">Data Query Portal</a>
-            </li>
+            <!-- <li class="nav-item">
+              <a
+                class="nav-link {% if 'home_page_view' in request.path %}active{% endif %}"
+                href="home_page_view"
+              >
+                <i class="fas fa-database"></i> Data Query
+              </a>
+            </li> -->
             {% if user.is_authenticated %}
             <li class="nav-item">
               <a
-                class="nav-link active"
-                aria-current="page"
-                href="profile"
-                style="color: blueviolet"
+                class="nav-link {% if 'verifystudents' in request.path %}active{% endif %}"
+                href="verifystudents"
               >
-                Hello {{user.first_name}} !!
+                <i class="fas fa-user-check"></i> Verify Students
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="logout">Logout</a>
+              <a
+                class="nav-link {% if 'updatestudentplacement' in request.path %}active{% endif %}"
+                href="updatestudentplacement"
+              >
+                <i class="fas fa-user-edit"></i> Update Placement
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if 'updatestudentplacement' in request.path %}active{% endif %}"
+                href="../assignstudentcoordinator"
+              >
+                <i class="fas fa-user-edit"></i> Assign Student Coordinator
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if 'updatestudentplacement' in request.path %}active{% endif %}"
+                href="addannouncements"
+              >
+                <i class="fas fa-bullhorn"></i> Add Announcements
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+
+          <!-- Right side items -->
+          <ul class="navbar-nav">
+            {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-user-circle"></i> {{user.first_name}}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <!-- <li>
+                  <a class="dropdown-item" href="#"
+                    ><i class="fas fa-user"></i> Profile</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#"
+                    ><i class="fas fa-cog"></i> Settings</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li> -->
+                <li>
+                  <a class="dropdown-item" href="logout"
+                    ><i class="fas fa-sign-out-alt"></i> Logout</a
+                  >
+                </li>
+              </ul>
             </li>
             {% else %}
             <li class="nav-item dropdown">
@@ -68,200 +243,315 @@
                 href="#"
                 role="button"
                 data-bs-toggle="dropdown"
-                aria-expanded="false"
               >
-                Login
+                <i class="fas fa-sign-in-alt"></i> Login
               </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="login">Student Login</a></li>
-                <li><a class="dropdown-item" href="tplogin">T&P Login</a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="login"
+                    ><i class="fas fa-user-graduate"></i> Student Login</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="tplogin"
+                    ><i class="fas fa-user-tie"></i> T&P Login</a
+                  >
+                </li>
                 <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="register"
+                    ><i class="fas fa-user-plus"></i> Register</a
+                  >
+                </li>
               </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="register">Register</a>
-            </li>
-            {%endif%}
-            <li class="nav-item">
-              <a class="nav-link" href="verifystudents">Verify Students</a>
-            </li>
+            {% endif %}
           </ul>
         </div>
       </div>
     </nav>
-    {%for mssg in messages%}
-    <p style="color: red">{{mssg}}</p>
-    {%endfor%}
-    <!-- File Upload -->
-    <form method="POST" enctype="multipart/form-data" style="padding: 5%">
-      {% csrf_token %}
-      <input type="file" name="csvfile" accept=".csv" required />
-      <button type="submit" class="btn btn-primary">Upload CSV</button>
-    </form>
-    <h4 style="text-align: center">or</h4>
-    <!-- First Form -->
-    <form
-      action="{% url 'updatestudentplacement' %}"
-      method="POST"
-      style="padding: 5%"
-    >
-      {%csrf_token%}
-      <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label"
-          >Enter Registration Number</label
-        >
-        <input
-          type="text"
-          class="form-control"
-          id="exampleInputEmail1"
-          required
-          aria-describedby="emailHelp"
-          name="register"
-        />
+
+    <div class="container my-4">
+      {%for mssg in messages%}
+      <div
+        class="alert alert-{{ mssg.tags }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ mssg }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
       </div>
-      <!-- <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label">Company ID</label>
-        <input
-          required
-          type="text"
-          class="form-control"
-          id="exampleInputPassword1"
-          name="company"
-        />
-      </div> -->
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-    <!-- Status -->
-    <div>
-      <div style="padding-left: 40%">
-        <h5>Student Name : {{stu.name}}</h5>
-        <h5>
-          Branch &nbsp;&nbsp;&nbsp&nbsp&nbsp;&nbsp;&nbsp&nbsp&nbsp;&nbsp&nbsp :
-          {{stu.branch}}
+      {%endfor%}
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-container">
+            <h4 class="mb-4">
+              <i class="fas fa-file-upload me-2"></i>Upload CSV File
+            </h4>
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="input-group mb-3">
+                <input
+                  type="file"
+                  class="form-control"
+                  name="csvfile"
+                  accept=".csv"
+                  required
+                />
+                <button class="btn btn-primary" type="submit">Upload</button>
+              </div>
+              <small class="text-muted"
+                >Upload a CSV file containing student placement data</small
+              >
+            </form>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-container">
+            <h4 class="mb-4">
+              <i class="fas fa-search me-2"></i>Search Student
+            </h4>
+            <form action="{% url 'updatestudentplacement' %}" method="POST">
+              {%csrf_token%}
+              <div class="mb-3">
+                <label for="regNumber" class="form-label"
+                  >Registration Number</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text"
+                    ><i class="fas fa-id-card"></i
+                  ></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regNumber"
+                    required
+                    name="register"
+                    placeholder="Enter student registration number"
+                  />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                Search
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% if stu %}
+      <div class="student-info" style="padding-top: 5%">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 style="padding-bottom: 5%">
+              <i class="fas fa-user me-2"></i> Student Name:
+              <strong>{{stu.name}}</strong>
+            </h5>
+            <h5 style="padding-bottom: 5%">
+              <i class="fas fa-graduation-cap me-2"></i> Branch:
+              <strong>{{stu.branch}}</strong>
+            </h5>
+          </div>
+          <div class="col-md-6">
+            <h5 style="padding-bottom: 5%">
+              <i class="fas fa-calendar-alt me-2"></i> Academic Year:
+              <strong>{{stu.academic_year}}</strong>
+            </h5>
+            <h5>
+              <i class="fas fa-briefcase me-2"></i> Job Interest:
+              <span class="badge bg-primary">{{stu.job_type}}</span>
+            </h5>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <h5 class="text">
+          Placement Registration Status:
+          <span
+            class="status-badge {% if stu.registered == 'Yes' %}status-approved{% else %}status-rejected{% endif %}"
+          >
+            {{stu.registered}}
+          </span>
         </h5>
-        <h5>Registered For Placement :{{stu.registered}}</h5>
-        <h5>Job Interest &nbsp;&nbsp;&nbsp&nbsp: {{stu.job_type}}</h5>
-        <h5>Passing Out Year: {{stu.academic_year}}</h5>
-        <br />
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">S.NO</th>
-            <th scope="col">Company Name</th>
-            <th scope="col">Applied</th>
-            <th scope="col">CV Screening</th>
-            <th scope="col">Aptitude Test</th>
-            <th scope="col">GD</th>
-            <th scope="col">Coding Test</th>
-            <th scope="col">Technical Interview</th>
-            <th scope="col">HR Interview</th>
-            <th scope="col">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {%for s in send%}
-          <tr>
-            <th scope="row">1</th>
-            <td>{{s.companyName}}</td>
-            <td>
-              {% if s.level > 1 %}✔️{% elif s.level == 1 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 2 %}✔️{% elif s.level == 2 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 3 %}✔️{% elif s.level == 3 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 4 %}✔️{% elif s.level == 4 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 5 %}✔️{% elif s.level == 5 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 6 %}✔️{% elif s.level == 6 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>
-              {% if s.level > 7 %}✔️{% elif s.level == 7 %}🟢{% else %}❌
-              {%endif %}
-            </td>
-            <td>{{s.status}}</td>
-          </tr>
-          {%endfor%}
-        </tbody>
-      </table>
+
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Company Name</th>
+              <th scope="col">Applied</th>
+              <th scope="col">CV Screening</th>
+              <th scope="col">Aptitude Test</th>
+              <th scope="col">GD</th>
+              <th scope="col">Coding Test</th>
+              <th scope="col">Technical Interview</th>
+              <th scope="col">HR Interview</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%for s in send%}
+            <tr>
+              <th scope="row">{{ forloop.counter }}</th>
+              <td><strong>{{s.companyName}}</strong></td>
+              <td>
+                {% if s.level > 1 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 1 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 2 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 2 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 3 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 3 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 4 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 4 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 5 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 5 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 6 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 6 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                {% if s.level > 7 %}<i
+                  class="fas fa-check-circle text-success"
+                ></i
+                >{% elif s.level == 7 %}<i
+                  class="fas fa-spinner text-primary"
+                ></i
+                >{% else %}<i class="fas fa-times-circle text-secondary"></i
+                >{%endif %}
+              </td>
+              <td>
+                <span
+                  class="badge {% if s.status == 'Rejected' %}bg-danger {% elif 'Qualified' in s.status %}bg-success {% else %}bg-warning text-dark{% endif %}"
+                >
+                  {{s.status}}
+                </span>
+              </td>
+            </tr>
+            {%endfor%}
+          </tbody>
+        </table>
+      </div>
+      {%endif%}
+
+      <!-- Second Form -->
+      {%if form2%}
+      <div class="form-container mt-4">
+        <h4 class="mb-4">
+          <i class="fas fa-edit me-2"></i>Update Student Status
+        </h4>
+        <form action="{% url 'updatestudentplacement' %}" method="POST">
+          {%csrf_token%}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Current Level</label>
+              <select class="form-select" required name="level">
+                <option value="">Select current level...</option>
+                <option value="CV Screening">CV Screening</option>
+                <option value="Aptitude Test">Aptitude Test</option>
+                <option value="GD">Group Discussion</option>
+                <option value="Coding Test">Coding Test</option>
+                <option value="Technical Interview">Technical Interview</option>
+                <option value="HR Interview">HR Interview</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Updated Status</label>
+              <select class="form-select" required name="status">
+                <option value="">Select updated status...</option>
+                <option value="Promoted to CV Screening">
+                  Promoted to CV Screening
+                </option>
+                <option value="Promoted to Aptitude Test">
+                  Promoted to Aptitude Test
+                </option>
+                <option value="Promoted to GD">Promoted to GD</option>
+                <option value="Promoted to Coding Test">
+                  Promoted to Coding Test
+                </option>
+                <option value="Promoted to Technical Interview">
+                  Promoted to Technical Interview
+                </option>
+                <option value="Promoted to HR Interview">
+                  Promoted to HR Interview
+                </option>
+                <option value="Qualified(Student acception Pending)">
+                  Qualified (Pending Acceptance)
+                </option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <input
+            type="hidden"
+            name="register"
+            value="{{ student.registered_id }}"
+          />
+          <button type="submit" class="btn btn-primary w-100">
+            Update Status
+          </button>
+        </form>
+      </div>
+      {%endif%}
     </div>
-    <!-- Second Form -->
-    {%if form2%}
-    <form action="{% url 'updatestudentplacement' %}" method="POST">
-      {%csrf_token%}
-      <div class="input-group mb-3">
-        <label class="input-group-text" for="inputGroupSelect01"
-          >Current Level
-        </label>
-        <select
-          required
-          class="form-select"
-          id="inputGroupSelect01"
-          name="level"
-        >
-          <option value="">Choose...</option>
-          <option value="CV Screening">CV Screening</option>
-          <option value="Aptitude Test">Aptitude Test</option>
-          <option value="GD">GD</option>
-          <option value="Coding Test">Coding Test</option>
-          <option value="Technical Interview">Interview</option>
-          <option value="HR Interview">HR Interview</option>
-        </select>
-      </div>
-      <div class="input-group mb-3">
-        <label class="input-group-text" for="inputGroupSelect01"
-          >Updated Status
-        </label>
-        <select
-          required
-          class="form-select"
-          id="inputGroupSelect01"
-          name="status"
-        >
-          <option value="">Choose...</option>
-          <option value="Promoted to CV Screening">
-            Promoted to CV Screening
-          </option>
-          <option value="Promoted to Aptitude Test">
-            Promoted to Aptitude Test
-          </option>
-          <option value="Promoted to GD">Promoted to GD</option>
-          <option value="Promoted to Coding Test">
-            Promoted to Coding Test
-          </option>
-          <option value="Promoted to Technical Interview">
-            Promoted to Technical Interview
-          </option>
-          <option value="Promoted to HR Interview">
-            Promoted to HR Interview
-          </option>
-          <option value="Qualified(Student acception Pending)">
-            Qualified(Student acception Pending)
-          </option>
-          <option value="Rejected">Rejected</option>
-        </select>
-      </div>
-      <input
-        type="hidden"
-        name="register"
-        value="{{ student.registered_id }}"
-      />
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-    {%endif%}
+
+    <!-- Font Awesome for icons -->
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Bootstrap JS -->
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"

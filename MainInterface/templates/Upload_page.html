@@ -1,44 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Upload File</title>
-</head>
-<body class="bg-dark text-light">
-  <div class="container">
-    <a href="/" class="back-home">← Back to Home</a>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Upload File</title>
+  </head>
+  <body class="bg-dark text-light">
+    <div class="container">
+      <a href="/" class="back-home">← Back to Home</a>
 
-    <h2>Upload CSV or Excel File</h2>
+      <h2>Upload CSV or Excel File</h2>
 
-    {% if messages %}
+      {% if messages %}
       <ul>
         {% for message in messages %}
-          <li>{{ message }}</li>
+        <li>{{ message }}</li>
         {% endfor %}
       </ul>
-    {% endif %}
+      {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="file" name="file" accept=".csv, .xls, .xlsx" required>
-      <button type="submit" class="btn">Upload</button>
-    </form>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="file" accept=".csv, .xls, .xlsx" required />
+        <button type="submit" class="btn">Upload</button>
+      </form>
 
-    <!-- Edit Option -->
-    <div style="margin-top: 20px;">
-      <p>If you want to modify an existing table, use the <a href="{% url 'edit_page' %}">Edit Table</a> option.</p>
-    </div>
+      <!-- Edit Option -->
+      <div style="margin-top: 20px">
+        <p>
+          If you want to modify an existing table, use the
+          <a href="{% url 'edit_page' %}">Edit Table</a> option.
+        </p>
+      </div>
 
-    {% if error %}
+      {% if error %}
       <p>{{ error }}</p>
-    {% endif %}
-
-    {% if preview %}
+      {% endif %} {% if preview %}
       <div>
         <h3>Preview (Top 10 Rows)</h3>
         {{ preview|safe }}
       </div>
-    {% endif %}
-  </div>
-</body>
+      {% endif %}
+    </div>
+  </body>
 </html>

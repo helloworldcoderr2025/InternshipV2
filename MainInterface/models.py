@@ -2,13 +2,14 @@ from django.db import models
 
 
 class Announcements(models.Model):
-    title = models.CharField(max_length=200)
-    message = models.TextField()
-    created_at = models.DateTimeField(blank=True, null=True)
+    id = models.BigAutoField(primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(blank=True, null=True)
+    document_url = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'announcements'
+        db_table = 'Announcements'
 
 
 class AuthGroup(models.Model):
