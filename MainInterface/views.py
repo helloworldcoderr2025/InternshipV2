@@ -765,10 +765,25 @@ def index(request):
         announcements=list(Announcements.objects.filter())
         companies={}
         if not isinstance(request.user, AnonymousUser):
+            user=request.user.username
+            branch=Student.objects.filter(roll_no=user.split('@')[0]).first().branch
             jobs=list(CompanyJobprofiles.objects.filter().order_by("-key"))
-            for job in jobs:
-                companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
-            companies=dict(list(companies.items())[:9])
+            for job in jobs :
+                if  len(companies)==9:
+                    break
+                eligibleBranches=job.eligible_core_branch
+                if eligibleBranches:  # Check if it's not None
+                    branches = eligibleBranches.split(',')
+                else:
+                    branches = []
+                eligibleBranches=job.eligible_non_core_branch
+                if eligibleBranches:
+                    branches2=eligibleBranches.split(',')
+                else:
+                    branches2=[]
+                branches=branches+branches2
+                if branch in branches:
+                    companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
         return render(request,'index.html',{'announcements':announcements,"companies":companies})
     
 def register(request):
@@ -1743,7 +1758,21 @@ def announcements(request):
 @login_required(login_url="login")
 def registerforplacements(request):
     companies={}
+    user=request.user.username
+    branch=Student.objects.filter(roll_no=user.split('@')[0]).first().branch
     jobs=list(CompanyJobprofiles.objects.filter().order_by("-key"))
     for job in jobs:
-        companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
+        eligibleBranches=job.eligible_core_branch
+        if eligibleBranches:  # Check if it's not None
+            branches = eligibleBranches.split(',')
+        else:
+            branches = []
+        eligibleBranches=job.eligible_non_core_branch
+        if eligibleBranches:
+            branches2=eligibleBranches.split(',')
+        else:
+            branches2=[]
+        branches=branches+branches2
+        if branch in branches:
+            companies[job.key]={"comapanyname":list(Company.objects.filter(id=job.company_id)),"job":job,}
     return render(request,'registerforplacements.html',{"companies":companies})

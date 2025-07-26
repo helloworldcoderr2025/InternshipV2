@@ -486,8 +486,10 @@
                 {% endif %} {% if company.job.eligible_passouts %}
                 <strong>Passouts:</strong> {{ company.job.eligible_passouts}}<br />
                 {% endif %}
-                <strong> Eligible Branches:</strong>
+                <strong> Eligible Core Branches:</strong>
                 {{company.job.eligible_core_branch}}<br />
+                <strong> Eligible Non Core Branches:</strong>
+                {{company.job.eligible_non_core_branch}}<br />
                 <strong> Job Offer:</strong>
                 {{company.job.job_offer}}<br />
               </p>
