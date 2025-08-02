@@ -10,6 +10,101 @@
     input, button {
       margin: 5px;
     }
+    
+    /* Enhanced modal styling */
+    #uploadModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      border: 1px solid #e2e8f0;
+      padding: 32px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      z-index: 9999;
+    }
+    
+    #uploadModal button {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 5px;
+    }
+    
+    #uploadModal button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+    
+    #uploadModal input, #uploadModal select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      margin: 5px 0;
+    }
+    
+    #uploadModal input:focus, #uploadModal select:focus {
+      outline: none;
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9998;
+    }
+    
+    /* Responsive modal adjustments */
+    @media (max-width: 768px) {
+      #uploadModal {
+        width: 95%;
+        padding: 20px;
+        max-height: 95vh;
+      }
+      
+      .modal-header h3 {
+        font-size: 18px;
+      }
+      
+      .tab-buttons {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
   </style>
 {% endblock css %}
 
@@ -17,66 +112,75 @@
 
 {% block content %}
   <div class="invitation-management-layout">
-          <h1> Upload Company Data</h1>
-      <div class="invitation-search-section">
-          <h2>Company Search</h2>
-          <label for="companySelect">Select a company:</label>
-          <select id="companySelect" style="width: 300px;">
-              <option></option> 
-              {% for company in companies %}
-              <option value="{{ company.id }}">{{ company.name }}</option>
-              {% endfor %}
-          </select>
+          <h1>Upload Company Data</h1>
+      <div class="company-search-upload-container">
+          <div class="invitation-search-section">
+              <h2>Company Search</h2>
+              <label for="companySelect">Select a company:</label>
+              <select id="companySelect" name="company" aria-describedby="company-help" style="width: 300px;">
+                  <option value="">Choose a company...</option> 
+                  {% for company in companies %}
+                  <option value="{{ company.id }}">{{ company.name }}</option>
+                  {% endfor %}
+              </select>
+              <div id="company-help" class="help-text">Select a company to view details or upload</div>
+          </div>
+          <button id="uploadBtn" class="upload-company-btn" type="button">
+              <i class="fas fa-upload"></i> Upload Company
+          </button>
       </div>
   </div>
-  <div style="margin-left: 280px;">
-      <button id="uploadBtn">Upload Company</button>
-      {% comment %} Issue here {% endcomment %}
-      <div id="uploadModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; padding:20px; z-index:9999; max-width:600px;">
-      
-
+  
+  <div id="company-details"></div>
+  
+  <!-- Modal overlay -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+  
+  <!-- Modal moved outside the problematic container -->
+  <div id="uploadModal">
+    <div class="modal-header">
+      <h3>Upload Company Data</h3>
+      <button onclick="closeModal()" style="background: #dc3545;">✖</button>
+    </div>
+    
+    <div class="tab-buttons">
       <button onclick="showTab('single')">Single Upload</button>
       <button onclick="showTab('bulk')">Bulk Upload</button>
-      <button onclick="closeModal()" style="float:right;">✖</button>
+    </div>
 
+    <div id="singleUploadTab" style="display:none; margin-top:15px;">
+      <form id="singleUploadForm" action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Company ID:</label>
+        <input type="text" name="company_id" id="prefilledCompanyId" readonly required><br>
+        <label>Company Name:</label>
+        <input type="text" name="name" id="prefilledCompanyName" readonly required><br><br>
+        <h4>Add New Job Profile Details</h4>
+        <label>Job Profile:</label><input type="text" name="job_profile" required><br>
+        <label>Type of Company:</label><input type="text" name="type_of_company"><br>
+        <label>Job Offer:</label><input type="text" name="job_offer"><br>
+        <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
+        <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
+        <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
+        <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
+        <label>HR Contact Email:</label><input type="text" name="hr_contact_email"><br>
+        <label>HR Contact Phone Number:</label><input type="text" name="hr_contact_phno"><br>
+        <label>HR Contact Alternate:</label><input type="text" name="hr_contact_alternate"><br>
+        <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
+        <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
+        <button type="submit">Submit Job Profile</button>
+      </form>
+    </div>
 
-      <div id="singleUploadTab" style="display:none; margin-top:15px;">
-        <form id="singleUploadForm" action="{% url 'upload_company_details' %}" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <label>Company ID:</label>
-          <input type="text" name="company_id" id="prefilledCompanyId" readonly required><br>
-          <label>Company Name:</label>
-          <input type="text" name="name" id="prefilledCompanyName" readonly required><br><br>
-          <h4>Add New Job Profile Details</h4>
-          <label>Job Profile:</label><input type="text" name="job_profile" required><br>
-          <label>Type of Company:</label><input type="text" name="type_of_company"><br>
-          <label>Job Offer:</label><input type="text" name="job_offer"><br>
-          <label>Max Package Offered:</label><input type="text" name="max_package_offered"><br>
-          <label>Eligible Passouts:</label><input type="text" name="eligible_passouts"><br>
-          <label>Eligible Core Branches:</label><input type="text" name="eligible_core_branch"><br>
-          <label>Eligible Non-Core Branches:</label><input type="text" name="eligible_non_core_branch"><br>
-          <label>HR Contact Email:</label><input type="text" name="hr_contact_email"><br>
-          <label>HR Contact Phone Number:</label><input type="text" name="hr_contact_phno"><br>
-          <label>HR Contact Alternate:</label><input type="text" name="hr_contact_alternate"><br>
-          <label>Google Form Link:</label><input type="url" name="google_form_link"><br>
-          <label>Brochure (PDF):</label><input type="file" name="brochure" accept="application/pdf"><br><br>
-          <button type="submit">Submit Job Profile</button>
+    <div id="bulkUploadTab" style="display:none; margin-top:15px;">
+        <form action="{% url 'upload_company_details_bulk' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Select CSV/Excel File:</label>
+        <input type="file" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required><br><br>
+        <button type="submit">Submit Bulk Upload</button>
         </form>
-      </div>
-
-
-
-      <div id="bulkUploadTab" style="display:none; margin-top:15px;">
-          <form action="{% url 'upload_company_details_bulk' %}" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <label>Select CSV/Excel File:</label>
-          <input type="file" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required><br><br>
-          <button type="submit">Submit Bulk Upload</button>
-          </form>
-          <p>Download template file: <a href="{% url 'download_company_table_template' %}" target="_blank">Click here</a></p>
-      </div>
-      </div>
-      <div id="company-details"></div>
+        <p>Download template file: <a href="{% url 'download_company_table_template' %}" target="_blank">Click here</a></p>
+    </div>
   </div>
 {% endblock content %}
 

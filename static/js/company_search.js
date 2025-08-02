@@ -8,6 +8,7 @@ axios.defaults.headers.common['X-CSRFToken'] = getCSRFToken();
 $(document).ready(function () {
     const select = $('#companySelect');
     const detailsDiv = document.getElementById('company-details');
+    const uploadBtn = document.getElementById('uploadBtn');
 
     // Initialize select2
     select.select2({
@@ -15,12 +16,23 @@ $(document).ready(function () {
         allowClear: true
     });
 
-    // On company select
+    // Enhanced company selection handling
     select.on('change', function () {
         const companyId = $(this).val();
         if (!companyId) {
             detailsDiv.innerHTML = '';
+            // Disable upload button when no company is selected
+            if (uploadBtn) {
+                uploadBtn.disabled = true;
+                uploadBtn.style.opacity = '0.6';
+            }
             return;
+        }
+
+        // Enable upload button when company is selected
+        if (uploadBtn) {
+            uploadBtn.disabled = false;
+            uploadBtn.style.opacity = '1';
         }
 
         axios.get(`/api/company/${companyId}/`)
@@ -31,6 +43,12 @@ $(document).ready(function () {
                 detailsDiv.innerHTML = `<p style="color:red;">Error fetching company data.</p>`;
             });
     });
+
+    // Initially disable upload button
+    if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.style.opacity = '0.6';
+    }
 
     function showCompanyDetails(data) {
         const company = data; // fixed: data *is* the company
@@ -203,15 +221,32 @@ $(document).ready(function () {
 
     // === Modal controls ===
     const modal = document.getElementById("uploadModal");
+    const modalOverlay = document.getElementById("modalOverlay");
     const singleTab = document.getElementById("singleUploadTab");
     const bulkTab = document.getElementById("bulkUploadTab");
 
     document.getElementById("uploadBtn").onclick = () => {
+        const selectedId = select.val();
+        const selectedName = $("#companySelect option:selected").text();
+        
+        if (!selectedId) {
+            alert("Please select a company first.");
+            return;
+        }
+
+        // Prefill fields
+        document.getElementById('prefilledCompanyId').value = selectedId;
+        document.getElementById('prefilledCompanyName').value = selectedName;
+
         modal.style.display = "block";
+        modalOverlay.style.display = "block";
         showTab('single');
     };
 
-    window.closeModal = () => { modal.style.display = "none"; }
+    window.closeModal = () => { 
+        modal.style.display = "none"; 
+        modalOverlay.style.display = "none";
+    }
 
     window.showTab = (tab) => {
         singleTab.style.display = (tab === 'single') ? 'block' : 'none';
@@ -219,6 +254,6 @@ $(document).ready(function () {
     }
 
     window.onclick = function(event) {
-        if (event.target === modal) closeModal();
+        if (event.target === modal || event.target === modalOverlay) closeModal();
     };
 });

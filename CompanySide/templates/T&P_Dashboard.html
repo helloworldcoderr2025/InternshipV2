@@ -1,950 +1,1637 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  <title>{% block title %}T&P Dashboard{% endblock %}</title>
-  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
-  <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
-      crossorigin="anonymous"
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}T&P Dashboard{% endblock %}</title>
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+        crossorigin="anonymous"
     />
-  <<style>
-      :root {
-        --nitap-blue: #003366;
-        --nitap-orange: #ff6600;
-        --nitap-light: #f8f9fa;
-      }
-
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f5f5;
-      }
-
-      .header {
-        background: linear-gradient(
-          135deg,
-          var(--nitap-blue),
-          var(--nitap-orange)
-        );
-        color: white;
-        padding: 1.5rem 0;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .header h1 {
-        font-weight: 700;
-        font-size: 2.2rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .header h2 {
-        font-weight: 500;
-        font-size: 1.8rem;
-      }
-
-      .navbar {
-        background-color: white !important;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        padding: 0.5rem 1rem;
-      }
-
-      .navbar-brand {
-        font-weight: 600;
-        color: var(--nitap-blue) !important;
-        display: flex;
-        align-items: center;
-      }
-
-      .navbar-brand img {
-        margin-right: 10px;
-      }
-
-      .nav-link {
-        font-weight: 500;
-        color: #555 !important;
-        padding: 0.5rem 1rem !important;
-        border-radius: 4px;
-        margin: 0 0.2rem;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-      }
-
-      .nav-link i {
-        margin-right: 6px;
-        font-size: 0.9rem;
-      }
-
-      .nav-link:hover,
-      .nav-link.active {
-        background-color: rgba(0, 51, 102, 0.1);
-        color: var(--nitap-blue) !important;
-      }
-
-      .dropdown-menu {
-        border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .dropdown-item {
-        padding: 0.5rem 1.5rem;
-        display: flex;
-        align-items: center;
-      }
-
-      .dropdown-item i {
-        margin-right: 8px;
-        width: 18px;
-        text-align: center;
-      }
-
-      .dropdown-item:hover {
-        background-color: rgba(0, 51, 102, 0.1);
-        color: var(--nitap-blue);
-      }
-
-      .user-greeting {
-        color: var(--nitap-blue);
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-      }
-
-      .user-greeting i {
-        margin-right: 6px;
-      }
-
-      .form-container {
-        background-color: white;
-        border-radius: 8px;
-        padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2rem;
-      }
-
-      .btn-primary {
-        background-color: var(--nitap-blue);
-        border-color: var(--nitap-blue);
-      }
-
-      .btn-primary:hover {
-        background-color: #002244;
-        border-color: #002244;
-      }
-
-      .card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      }
-
-      .table {
-        background-color: white;
-        border-radius: 8px;
-        overflow: hidden;
-      }
-
-      .table th {
-        background-color: var(--nitap-blue);
-        color: white;
-        font-weight: 500;
-      }
-
-      .status-badge {
-        padding: 0.35em 0.65em;
-        border-radius: 50rem;
-        font-size: 0.875em;
-        font-weight: 600;
-      }
-
-      .status-pending {
-        background-color: #fff3cd;
-        color: #856404;
-      }
-
-      .status-approved {
-        background-color: #d4edda;
-        color: #155724;
-      }
-
-      .status-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-
-      .alert {
-        border-radius: 8px;
-      }
-
-      .input-group-text {
-        background-color: var(--nitap-light);
-      }
-
-      .form-control:focus,
-      .form-select:focus {
-        border-color: var(--nitap-blue);
-        box-shadow: 0 0 0 0.25rem rgba(0, 51, 102, 0.25);
-      }
-
-      .btn-link {
-        text-decoration: none;
-        color: var(--nitap-blue);
-        padding-left: 0;
-      }
-
-      .btn-link:hover {
-        text-decoration: underline;
-      }
-
-      .iframe-container {
-        height: 600px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1.5rem;
-      }
-
-      .iframe-container iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
-    </style>
-  {% block css %}{% endblock css %}
-</head>
-<body>
-   
-
-  <div class="top-navigation-header">
-    <div class="header text-center">
-      <h1>National Institute of Technology, Andhra Pradesh</h1>
-      <h2>Training & Placement Portal</h2>
-    </div>
-
-    <div class="navigation-menu">
-      <div class="nav-dropdown">
-        <a class="nav-dropdown-toggle">Students</a>
-        <div class="nav-dropdown-menu">
-          <a href="{% url 'verifystudents' %}" class="nav-dropdown-item">Verify Students</a>
-          <a href="{% url 'updatestudentplacement' %}" class="nav-dropdown-item">Update Student Placement</a>
-          <a href="{% url 'assignstudentcoordinator' %}" class="nav-dropdown-item">Assign Student Coordinator</a>
-          <!-- <a href="{% url 'company_data_portal' %}" class="nav-dropdown-item">Update Student Placement</a> -->
-        </div>
-      </div>
-      <div class="nav-dropdown">
-        <a class="nav-dropdown-toggle">Companies</a>
-        <div class="nav-dropdown-menu">
-          <a href="{% url 'company_search' %}" class="nav-dropdown-item">Search Companies</a>
-          <a href="{% url 'company_data_portal' %}" class="nav-dropdown-item">Company Data Portal</a>
-        </div>
-      </div>
-      <div class="nav-dropdown">
-        <a class="nav-dropdown-toggle">Invitations</a>
-        <div class="nav-dropdown-menu">
-          <a href="{% url 'company_invitations_portal' %}" class="nav-dropdown-item">Companies Invitations Data Portal</a>
-          <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item {% if page == 'invitation_status' %}active{% endif %}">Check & Send Invitation Status</a>
-        </div>
-      </div>
-      <a href="{% url 'tpportal' %}" class="nav-menu-item {% if section == 'dashboard' %}active{% endif %}">T&P Dashboard</a>
-      <a href="{% url 'logout' %}" style="background-color: red;" class="nav-menu-item {% if section == 'dashboard' %}deactive{% endif %}">Logout</a>
-    </div>
-  </div>
-  
-  {% block content %}
-    <div class="main-content">
-      <div class="dashboard-header">
-        <div class="header-content">
-          <h1>Training & Placement Dashboard</h1>
-          <p>Manage company invitations and placement activities</p>
-        </div>
-        <span class="academic-year-badge">Academic Year 2024-25</span>
-      </div>
-      <div class="company-count">
-        <div><strong>Total Companies Willing to Come: </strong> {{ total_count }}</div>
-        <div><strong>Pending Invitations(Not responded): </strong> {{ pending_invitations }}</div>
-      </div>
-      <div class="dashboard-announcements-section">
-        <h2> Announcements</h2>
-        <div class="announcement-list">
-          {% if announcements %}
-            {% for a in announcements %}
-              <div class="announcement-item">
-                <strong>{{ a.title }}</strong>
-                <small>{{ a.created_at|date:"Y-m-d H:i" }}</small>
-                <p>{{ a.message }}</p>
-              </div>
-            {% endfor %}
-          {% else %}
-            <p>No announcements yet.</p>
-          {% endif %}
-        </div>
-
-        <button class=""><a href="{% url 'addannouncements' %}">+ Edit / Create New Announcement</a></button>
-      </div>
-
-      <div id="announcement-modal" class="modal">
-        <div class="modal-content">
-          <span class="close-btn">&times;</span>
-          <h3>Create New Announcement</h3>
-          <form id="add-announcement-form">
-            {% csrf_token %}
-            <input type="text" name="title" placeholder="Title" required>
-            <textarea name="message" rows="3" placeholder="Message" required></textarea>
-            <button type="submit">Submit</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="statistics-section">
-        <div class="section-header">
-          <h2>Branch-wise Placement Statistics</h2>
-        </div>
-        <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
-          <label for="academic_year">Select Academic Year:</label>
-          <select name="academic_year" id="academic_year">
-            <option value="">All Years</option>
-            {% for year in academic_years %}
-              <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit">Show</button>
-        </form>
-        
-        <div class="chart-container">
-          <h3 class="chart-title-html">Branch-wise Placement Statistics</h3>
-          <div class="chart-wrapper">
-            <canvas id="branchPieChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <style>
-    .dashboard-announcements-section {
-      margin-top: 40px;
-      background: #f9fafc;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
+        :root {
+            /* Modern Professional Color Palette */
+            --primary-blue: #2563eb;
+            /* Modern blue replacing nitap-blue */
+            --primary-dark: #1e40af;
+            /* Darker shade for headers */
+            --accent-orange: #f59e0b;
+            /* Warm accent replacing nitap-orange */
+            --accent-light: #fbbf24;
+            /* Lighter accent for highlights */
+            --success-green: #10b981;
+            /* Success states */
+            --warning-amber: #f59e0b;
+            /* Warning states */
+            --error-red: #ef4444;
+            /* Error states */
 
-    .announcement-item {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      padding: 10px 15px;
-      margin-bottom: 10px;
-    }
+            /* Neutral Palette */
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
 
-    .add-announcement-btn {
-      margin-top: 15px;
-      padding: 8px 16px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+            /* Background Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
 
-    /* Modal styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 25%; top: 25%;
-      background: rgba(0,0,0,0.5);
-    }
+            /* Text Colors */
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
 
-    .modal-content {
-      background: white;
-      margin: auto;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      position: relative;
-      align: center;
-    }
+            /* Border Colors */
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --border-dark: #94a3b8;
 
-    .close-btn {
-      position: absolute;
-      top: 10px; right: 15px;
-      font-size: 24px;
-      cursor: pointer;
-    }
+            /* Shadow System */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-    .statistics-section {
-      margin-top: 40px;
-      padding: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-      position: relative;
-      z-index: 1;
-    }
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
 
-    .section-header h2 {
-      text-align: center;
-      font-size: 2.2rem;
-      color: #ffffff;
-      margin-bottom: 30px;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
+            /* Spacing */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+            --space-16: 4rem;
+            --space-20: 5rem;
+        }
 
-    .filter-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 40px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-      position: relative;
-      z-index: 2;
-    }
+        /* Import Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    .filter-controls label {
-      font-weight: 600;
-      color: #2c3e50;
-      font-size: 1.1rem;
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+                'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 400;
+            font-size: 16px;
+        }
 
-    .filter-controls select {
-      padding: 12px 18px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      background: white;
-      font-size: 15px;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+        /* Typography Scale */
+        h1, .h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
 
-    .filter-controls select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-    }
+        h2, .h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: -0.025em;
+        }
 
-    .filter-controls button {
-      padding: 12px 30px;
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 15px;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-    }
+        h3, .h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
 
-    .filter-controls button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-    }
+        h4, .h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
 
-    .chart-container {
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 20px;
-      padding: 40px 30px 60px 30px; /* Increased bottom padding */
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-      margin-top: 30px;
-      margin-bottom: 50px; /* Added bottom margin */
-      position: relative;
-      z-index: 10; /* High z-index to ensure visibility */
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 900px; /* Increased minimum height */
-    }
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
 
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.6;
+        }
 
-    .chart-title-html {
-      font-size: 32px;
-      font-weight: 800;
-      color: #1a202c;
-      margin-bottom: 40px;
-      text-align: center;
-      padding: 20px 0;
-      position: relative;
-      z-index: 11;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+        .text-xl {
+            font-size: 1.25rem;
+            line-height: 1.5;
+        }
 
+        .font-medium {
+            font-weight: 500;
+        }
 
-    .chart-wrapper {
-      position: relative;
-      width: 100%;
-      height: 750px; 
-      max-width: 1000px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 12;
-      overflow: visible; 
-      margin-bottom: 30px; 
-    }
+        .font-semibold {
+            font-weight: 600;
+        }
 
-    #branchPieChart {
-      max-width: 100% !important;
-      max-height: 100% !important;
-      position: relative;
-      z-index: 13; /* Highest z-index for the canvas */
-    }
+        .font-bold {
+            font-weight: 700;
+        }
 
-    /* Enhanced visual effects */
-    .statistics-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
-      border-radius: 20px 20px 0 0;
-      z-index: 2;
-    }
+        .font-extrabold {
+            font-weight: 800;
+        }
 
-    .statistics-section::after {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
-      border-radius: 22px;
-      z-index: -1;
-      opacity: 0.7;
-    }
+        .header {
+            background: linear-gradient(135deg, #003366 0%, #ff6600 100%);
+            color: var(--text-inverse);
+            padding: 0.5rem 0;
+            margin-bottom: 0;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
 
+        .header::before {
+            display: none !important;
+            content: none !important;
+        }
 
-    .main-content {
-      position: relative;
-      z-index: 1;
-      overflow: visible;
-    }
+        .header h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin-bottom: var(--space-2);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: -0.025em;
+        }
 
+        .header h2 {
+            font-weight: 500;
+            font-size: 1.25rem;
+            opacity: 0.9;
+            letter-spacing: 0.025em;
+        }
 
-    @media (max-width: 768px) {
-      .chart-wrapper {
-        height: 650px;
-      }
-      
-      .chart-container {
-        padding: 20px 15px 40px 15px;
-        min-height: 750px;
-      }
-      
-      .filter-controls {
-        flex-direction: column;
-        gap: 10px;
-      }
-      
-      .chart-title-html {
-        font-size: 24px;
-      }
-    }
+        .navbar {
+            background-color: white !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 1rem;
+        }
 
-    .main-content {
-      padding-bottom: 80px;
-    }
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-blue) !important;
+            display: flex;
+            align-items: center;
+        }
 
+        .navbar-brand img {
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: #555 !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 4px;
+            margin: 0 0.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link i {
+            margin-right: 6px;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(0, 51, 102, 0.1);
+            color: var(--primary-blue) !important;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(0, 51, 102, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .user-greeting {
+            color: var(--primary-blue);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-greeting i {
+            margin-right: 6px;
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #002244;
+            border-color: #002244;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--primary-blue);
+            color: white;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 0.35em 0.65em;
+            border-radius: 50rem;
+            font-size: 0.875em;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        .input-group-text {
+            background-color: var(--gray-100);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(0, 51, 102, 0.25);
+        }
+
+        .btn-link {
+            text-decoration: none;
+            color: var(--primary-blue);
+            padding-left: 0;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .iframe-container {
+            height: 600px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Navigation Menu Styles */
+        .top-navigation-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navigation-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            gap: 2rem;
+        }
+
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: block;
+        }
+
+        .nav-dropdown-toggle:hover {
+            background: var(--primary-dark);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 250px;
+            box-shadow: var(--shadow-xl);
+            border-radius: var(--radius-md);
+            padding: 0.5rem 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-dropdown-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .nav-menu-item {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu-item:hover {
+            background: var(--primary-dark);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 180px;
+            padding: var(--space-8);
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
+            color: white;
+            padding: var(--space-8);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-8);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .academic-year-badge {
+            position: absolute;
+            top: var(--space-4);
+            right: var(--space-4);
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .company-count {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-8);
+        }
+
+        .company-count div {
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-announcements-section {
+            margin-top: var(--space-10);
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-announcements-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-orange));
+        }
+
+        .dashboard-announcements-section h2 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: var(--space-6);
+            font-size: 1.5rem;
+        }
+
+        .announcement-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-4);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .announcement-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            border-color: var(--border-medium);
+        }
+
+        .announcement-item strong {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.125rem;
+            display: block;
+            margin-bottom: var(--space-2);
+        }
+
+        .announcement-item small {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: var(--space-3);
+        }
+
+        .announcement-item p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .add-announcement-btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 25%;
+            top: 25%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            position: relative;
+            align: center;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .statistics-section {
+            margin-top: var(--space-8);
+            padding: var(--space-8);
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-light);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .statistics-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-orange), var(--success-green));
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .section-header h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: var(--space-8);
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-10);
+            padding: var(--space-6);
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            position: relative;
+            z-index: 2;
+        }
+
+        .filter-controls label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .filter-controls select {
+            padding: var(--space-3) var(--space-4);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: var(--bg-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+            min-width: 200px;
+        }
+
+        .filter-controls select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-controls button {
+            padding: var(--space-3) var(--space-6);
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
+            color: var(--text-inverse);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .filter-controls button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chart-container {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-xl);
+            margin-top: var(--space-8);
+            margin-bottom: var(--space-12);
+            position: relative;
+            z-index: 10;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 550px;
+            overflow-x: auto;
+        }
+
+        .chart-title-html {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-8);
+            text-align: center;
+            padding: var(--space-4) 0;
+            position: relative;
+            z-index: 11;
+            letter-spacing: -0.025em;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            max-width: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 12;
+            overflow: visible;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        #branchPieChart {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            position: relative;
+            z-index: 13;
+        }
+
+        /* Enhanced visual effects */
+        .statistics-section::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            overflow: visible;
+            padding-bottom: 80px;
+        }
+
+        /* Responsive Design - Tablets */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.75rem;
+                margin-bottom: var(--space-1);
+            }
+
+            .header h2 {
+                font-size: 1rem;
+            }
+
+            .navigation-menu {
+                flex-direction: column;
+                gap: var(--space-2);
+                padding: var(--space-3) var(--space-4);
+            }
+
+            .nav-dropdown-toggle,
+            .nav-menu-item {
+                min-width: auto;
+                width: 100%;
+                padding: var(--space-3) var(--space-4);
+                font-size: 0.875rem;
+            }
+
+            .main-content {
+                padding: var(--space-4);
+                margin-top: 120px;
+            }
+
+            .dashboard-header {
+                padding: var(--space-6);
+                flex-direction: column;
+                gap: var(--space-4);
+                text-align: center;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .academic-year-badge {
+                align-self: center;
+                font-size: 0.875rem;
+                padding: var(--space-2) var(--space-4);
+            }
+
+            .dashboard-announcements-section,
+            .statistics-section {
+                padding: var(--space-6);
+                margin-top: var(--space-6);
+            }
+
+            .announcement-item {
+                padding: var(--space-4);
+            }
+
+            .announcement-item strong {
+                font-size: 1rem;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                gap: var(--space-3);
+                padding: var(--space-4);
+            }
+
+            .filter-controls select {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .chart-container {
+                padding: var(--space-4);
+                min-height: 400px;
+            }
+
+            .chart-title-html {
+                font-size: 1.5rem;
+                margin-bottom: var(--space-6);
+            }
+
+            .chart-wrapper {
+                height: 300px;
+                padding: 0 var(--space-2);
+            }
+
+            .company-count {
+                padding: var(--space-4);
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Responsive Design - Mobile Phones */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.25rem 0;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+                line-height: 1.3;
+            }
+
+            .header h2 {
+                font-size: 0.875rem;
+            }
+
+            .navigation-menu {
+                padding: var(--space-2) var(--space-3);
+                gap: var(--space-1);
+            }
+
+            .nav-dropdown-toggle,
+            .nav-menu-item {
+                padding: var(--space-2) var(--space-3);
+                font-size: 0.75rem;
+                min-height: 44px;
+            }
+
+            .main-content {
+                padding: var(--space-3);
+                margin-top: 100px;
+            }
+
+            .dashboard-header {
+                padding: var(--space-4);
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .academic-year-badge {
+                font-size: 0.75rem;
+                padding: var(--space-1) var(--space-3);
+            }
+
+            .dashboard-announcements-section,
+            .statistics-section {
+                padding: var(--space-4);
+                margin-top: var(--space-4);
+            }
+
+            .announcement-item {
+                padding: var(--space-3);
+            }
+
+            .announcement-item strong {
+                font-size: 0.875rem;
+            }
+
+            .announcement-item small {
+                font-size: 0.75rem;
+            }
+
+            .filter-controls {
+                padding: var(--space-3);
+                gap: var(--space-2);
+            }
+
+            .filter-controls label {
+                font-size: 0.875rem;
+            }
+
+            .filter-controls select {
+                padding: var(--space-2) var(--space-3);
+                font-size: 0.875rem;
+            }
+
+            .filter-controls button {
+                padding: var(--space-2) var(--space-4);
+                font-size: 0.875rem;
+            }
+
+            .chart-container {
+                padding: var(--space-3);
+                min-height: 350px;
+            }
+
+            .chart-title-html {
+                font-size: 1.25rem;
+                margin-bottom: var(--space-4);
+            }
+
+            .chart-wrapper {
+                height: 250px;
+                padding: 0 var(--space-1);
+            }
+
+            .company-count {
+                padding: var(--space-3);
+                font-size: 0.75rem;
+            }
+
+            button,
+            .nav-dropdown-toggle,
+            .nav-menu-item {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* Micro-interactions and animations */
+        .dashboard-header,
+        .statistics-section,
+        .chart-container,
+        .dashboard-announcements-section {
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-header:hover,
+        .statistics-section:hover,
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Focus states for accessibility */
+        button:focus,
+        select:focus,
+        input:focus {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: 2px;
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Success states */
+        .success {
+            border-color: var(--success-green) !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+        }
     </style>
+
+    {% block css %}{% endblock css %}
+</head>
+
+<body>
+    <div class="top-navigation-header">
+        <div class="header text-center">
+            <h1>National Institute of Technology, Andhra Pradesh</h1>
+            <h2>Training & Placement Portal</h2>
+        </div>
+
+        <div class="navigation-menu">
+            <div class="nav-dropdown">
+                <a class="nav-dropdown-toggle">Students</a>
+                <div class="nav-dropdown-menu">
+                    <a href="{% url 'verifystudents' %}" class="nav-dropdown-item">
+                        Verify Students
+                    </a>
+                    <a href="{% url 'updatestudentplacement' %}" class="nav-dropdown-item">
+                        Update Student Placement
+                    </a>
+                    <a href="{% url 'assignstudentcoordinator' %}" class="nav-dropdown-item">
+                        Assign Student Coordinator
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-dropdown">
+                <a class="nav-dropdown-toggle">Companies</a>
+                <div class="nav-dropdown-menu">
+                    <a href="{% url 'company_search' %}" class="nav-dropdown-item">
+                        Search Companies
+                    </a>
+                    <a href="{% url 'company_data_portal' %}" class="nav-dropdown-item">
+                        Company Data Portal
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-dropdown">
+                <a class="nav-dropdown-toggle">Invitations</a>
+                <div class="nav-dropdown-menu">
+                    <a href="{% url 'company_invitations_portal' %}" class="nav-dropdown-item">
+                        Companies Invitations Data Portal
+                    </a>
+                    <a href="{% url 'check_company_invite_status' %}" class="nav-dropdown-item {% if page == 'invitation_status' %}active{% endif %}">
+                        Check & Send Invitation Status
+                    </a>
+                </div>
+            </div>
+
+            <a href="{% url 'tpportal' %}" class="nav-menu-item {% if section == 'dashboard' %}active{% endif %}">
+                T & P Dashboard
+            </a>
+
+            <a href="{% url 'logout' %}" style="background-color: red;" class="nav-menu-item {% if section == 'dashboard' %}deactive{% endif %}">
+                Logout
+            </a>
+        </div>
+    </div>
+
+    {% block content %}
+    <div class="main-content">
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h1>Training & Placement Dashboard</h1>
+                <p>Manage company invitations and placement activities</p>
+            </div>
+            <span class="academic-year-badge">Academic Year 2024-25</span>
+        </div>
+
+        <div class="company-count">
+            <div><strong>Total Companies Willing to Come:</strong> {{total_count}}</div>
+            <div><strong>Pending Invitations (Not responded):</strong> {{pending_invitations}}</div>
+        </div>
+
+        <div class="dashboard-announcements-section">
+            <h2>Announcements</h2>
+            <div class="announcement-list">
+                {% if announcements %}
+                    {% for a in announcements %}
+                        <div class="announcement-item">
+                            <strong>{{a.title}}</strong>
+                            <small>{{a.created_at|date:"Y-m-d H:i"}}</small>
+                            <p>{{a.message}}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No announcements yet.</p>
+                {% endif %}
+            </div>
+
+            <button class="add-announcement-btn">
+                <a href="{% url 'addannouncements' %}">+ Edit / Create New Announcement</a>
+            </button>
+        </div>
+
+        <div id="announcement-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h3>Create New Announcement</h3>
+                <form id="add-announcement-form">
+                    {% csrf_token %}
+                    <input type="text" name="title" placeholder="Title" required>
+                    <textarea name="message" rows="3" placeholder="Message" required></textarea>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="statistics-section">
+            <div class="section-header">
+                <h2>Branch-wise Placement Statistics</h2>
+            </div>
+
+            <form method="get" action="{% url 'tpportal' %}" class="filter-controls">
+                <label for="academic_year">Select Academic Year:</label>
+                <select name="academic_year" id="academic_year">
+                    <option value="">All Years</option>
+                    {% for year in academic_years %}
+                        <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+                            {{year}}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Show</button>
+            </form>
+
+            <div class="chart-container">
+                <h3 class="chart-title-html">Branch-wise Placement Statistics</h3>
+                <div class="chart-wrapper">
+                    <canvas id="branchPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+
+    {% block script %}{% endblock script %}
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
     <script>
-    Chart.register(ChartDataLabels);
+        Chart.register(ChartDataLabels);
 
-    const colors = [
-        '#3742FA', // Royal Blue
-        '#FF6B35', // Vibrant Orange
-        '#6C5CE7', // Lavender Purple
-        '#FF3838', // Bright Red
-        '#2ECC71', // Green
-        '#F1C40F', // Sunflower Yellow
-        '#E91E63', // Pink
-        '#00BCD4',  // Cyan
-        '#1ABC9C', // Turquoise
-        '#E67E22', // Carrot Orange
-        '#16A085', // Dark Turquoise
-        '#27AE60', // Nephritis Green
-        '#8E44AD', // Wisteria Purple
-        '#FF4757', // Vivid Red
-        '#2ED573', // Emerald Green
-        '#9B59B6', // Purple
-        '#F39C12', // Orange
-        
-    ];
+        const colors = [
+            '#3742FA',  // Royal Blue
+            '#FF6B35',  // Vibrant Orange
+            '#6C5CE7',  // Lavender Purple
+            '#FF3838',  // Bright Red
+            '#2ECC71',  // Green
+            '#F1C40F',  // Sunflower Yellow
+            '#E91E63',  // Pink
+            '#00BCD4',  // Cyan
+            '#1ABC9C',  // Turquoise
+            '#E67E22',  // Carrot Orange
+            '#16A085',  // Dark Turquoise
+            '#27AE60',  // Nephritis Green
+            '#8E44AD',  // Wisteria Purple
+            '#FF4757',  // Vivid Red
+            '#2ED573',  // Emerald Green
+            '#9B59B6',  // Purple
+            '#F39C12',  // Orange
+        ];
 
-    const rawBranchLabels = {{ branch_labels|default:"[]"|safe }};
-    const branchData = {{ branch_data|default:"[]"|safe }};
-    const chartLabels = [];
-    const detailedLabelsContent = [];
+        const rawBranchLabels = {{ branch_labels|default:"[]"|safe }};
+        const branchData = {{ branch_data|default:"[]"|safe }};
+        const chartLabels = [];
+        const detailedLabelsContent = [];
 
-    rawBranchLabels.forEach(labelArray => {
-        if (labelArray.length > 0) {
-            chartLabels.push(labelArray[0]);
+        rawBranchLabels.forEach(labelArray => {
+            if (labelArray.length > 0) {
+                chartLabels.push(labelArray[0]);
+                let core = 0, non_core = 0, both = 0;
 
-            let core = 0, non_core = 0, both = 0;
-            labelArray.slice(1).forEach(detail => {
-                if (detail.startsWith('core:')) {
-                    core = parseInt(detail.split(':')[1]) || 0;
-                } else if (detail.startsWith('non-core:')) {
-                    non_core = parseInt(detail.split(':')[1]) || 0;
-                } else if (detail.startsWith('both:')) {
-                    both = parseInt(detail.split(':')[1]) || 0;
-                }
-            });
-            detailedLabelsContent.push({
-                branch: labelArray[0],
-                core: core,
-                non_core: non_core,
-                both: both
-            });
-        }
-    });
+                labelArray.slice(1).forEach(detail => {
+                    if (detail.startsWith('core:')) {
+                        core = parseInt(detail.split(':')[1]) || 0;
+                    } else if (detail.startsWith('non-core:')) {
+                        non_core = parseInt(detail.split(':')[1]) || 0;
+                    } else if (detail.startsWith('both:')) {
+                        both = parseInt(detail.split(':')[1]) || 0;
+                    }
+                });
 
-    const RadialLabelsPlugin = {
-      id: 'radialLabelsPlugin',
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-        const ds = chart.data.datasets[0];
-        const meta = chart.getDatasetMeta(0);
-        const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
-        const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
-
-        // Sort arcs by angle for better positioning
-        const sortedArcs = meta.data.map((arc, i) => ({ arc, i })).sort((a, b) => {
-          const angleA = (a.arc.startAngle + a.arc.endAngle) / 2;
-          const angleB = (b.arc.startAngle + b.arc.endAngle) / 2;
-          
-          const posA = { x: centerX + Math.cos(angleA) * a.arc.outerRadius, y: centerY + Math.sin(angleA) * a.arc.outerRadius };
-          const posB = { x: centerX + Math.cos(angleB) * b.arc.outerRadius, y: centerY + Math.sin(angleB) * b.arc.outerRadius };
-
-          if (posA.y !== posB.y) return posA.y - posB.y;
-          return posA.x - posB.x;
+                detailedLabelsContent.push({
+                    branch: labelArray[0],
+                    core: core,
+                    non_core: non_core,
+                    both: both
+                });
+            }
         });
 
-        const placedLabelBoxes = [];
+        const RadialLabelsPlugin = {
+            id: 'radialLabelsPlugin',
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx;
+                const ds = chart.data.datasets[0];
+                const meta = chart.getDatasetMeta(0);
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
 
-        sortedArcs.forEach(({ arc, i }) => {
-          const value = ds.data[i];
-          if (value === 0) return;
+                // Sort arcs by angle for better positioning
+                const sortedArcs = meta.data.map((arc, i) => ({ arc, i })).sort((a, b) => {
+                    const angleA = (a.arc.startAngle + a.arc.endAngle) / 2;
+                    const angleB = (b.arc.startAngle + b.arc.endAngle) / 2;
 
-          const details = detailedLabelsContent[i];
-          const branchName = details.branch;
-          
-          const labelLines = [
-            branchName,
-            `Core: ${details.core}`,
-            `Non-Core: ${details.non_core}`,
-            `Both: ${details.both}`
-          ];
+                    const posA = {
+                        x: centerX + Math.cos(angleA) * a.arc.outerRadius,
+                        y: centerY + Math.sin(angleA) * a.arc.outerRadius
+                    };
+                    const posB = {
+                        x: centerX + Math.cos(angleB) * b.arc.outerRadius,
+                        y: centerY + Math.sin(angleB) * b.arc.outerRadius
+                    };
 
-          const angle = (arc.startAngle + arc.endAngle) / 2;
-          const outerRadius = arc.outerRadius;
-          const initialLineOffset = 30;
-          const lineLength = 70;
-          const horizontalExtension = 50;
+                    if (posA.y !== posB.y) return posA.y - posB.y;
+                    return posA.x - posB.x;
+                });
 
-          let x_start = centerX + Math.cos(angle) * (outerRadius + initialLineOffset);
-          let y_start = centerY + Math.sin(angle) * (outerRadius + initialLineOffset);
+                const placedLabelBoxes = [];
 
-          let x_mid = centerX + Math.cos(angle) * (outerRadius + initialLineOffset + lineLength);
-          let y_mid = centerY + Math.sin(angle) * (outerRadius + initialLineOffset + lineLength);
+                sortedArcs.forEach(({ arc, i }) => {
+                    const value = ds.data[i];
+                    if (value === 0) return;
 
-          let x_end = x_mid + (Math.cos(angle) > 0 ? horizontalExtension : -horizontalExtension);
-          let y_end = y_mid;
+                    const details = detailedLabelsContent[i];
+                    const branchName = details.branch;
 
-          // Enhanced text box properties
-          ctx.font = '15px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-          const lineHeight = 20;
-          let maxTextWidth = 0;
-          labelLines.forEach((lineText, idx) => {
-              let currentFont;
-              if (idx === 0) { currentFont = 'bold 17px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif'; }
-              else { currentFont = 'normal 14px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif'; }
-              ctx.font = currentFont;
-              maxTextWidth = Math.max(maxTextWidth, ctx.measureText(lineText).width);
-          });
+                    const labelLines = [
+                        branchName,
+                        `Core: ${details.core}`,
+                        `Non-Core: ${details.non_core}`,
+                        `Both: ${details.both}`
+                    ];
 
-          const boxPadding = 12;
-          const bulletSpace = 18;
-          const boxWidth = maxTextWidth + boxPadding * 2 + bulletSpace;
-          const boxHeight = labelLines.length * lineHeight + boxPadding * 2;
-          const borderRadius = 8;
+                    const angle = (arc.startAngle + arc.endAngle) / 2;
+                    const outerRadius = arc.outerRadius;
+                    const initialLineOffset = 30;
+                    const lineLength = 70;
+                    const horizontalExtension = 50;
 
-          let currentBoxX;
-          let textAlign;
-          let bulletXOffset;
-          let textXOffset;
+                    let x_start = centerX + Math.cos(angle) * (outerRadius + initialLineOffset);
+                    let y_start = centerY + Math.sin(angle) * (outerRadius + initialLineOffset);
+                    let x_mid = centerX + Math.cos(angle) * (outerRadius + initialLineOffset + lineLength);
+                    let y_mid = centerY + Math.sin(angle) * (outerRadius + initialLineOffset + lineLength);
+                    let x_end = x_mid + (Math.cos(angle) > 0 ? horizontalExtension : -horizontalExtension);
+                    let y_end = y_mid;
 
-          if (Math.cos(angle) > 0) {
-              textAlign = 'left';
-              currentBoxX = x_end;
-              bulletXOffset = boxPadding + 6;
-              textXOffset = bulletXOffset + 12;
-          } else {
-              textAlign = 'right';
-              currentBoxX = x_end - boxWidth;
-              bulletXOffset = boxWidth - boxPadding - 6;
-              textXOffset = bulletXOffset - 12;
-          }
+                    // Enhanced text box properties
+                    ctx.font = '15px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                    const lineHeight = 20;
+                    let maxTextWidth = 0;
 
-          let currentBoxY = y_end - boxHeight / 2;
+                    labelLines.forEach((lineText, idx) => {
+                        let currentFont;
+                        if (idx === 0) {
+                            currentFont = 'bold 17px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                        } else {
+                            currentFont = 'normal 14px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                        }
+                        ctx.font = currentFont;
+                        maxTextWidth = Math.max(maxTextWidth, ctx.measureText(lineText).width);
+                    });
 
-          // Enhanced collision detection
-          let overlapDetected = true;
-          let maxAttempts = 300;
-          const verticalSpacing = 15;
+                    const boxPadding = 12;
+                    const bulletSpace = 18;
+                    const boxWidth = maxTextWidth + boxPadding * 2 + bulletSpace;
+                    const boxHeight = labelLines.length * lineHeight + boxPadding * 2;
+                    const borderRadius = 8;
 
-          while (overlapDetected && maxAttempts > 0) {
-              overlapDetected = false;
-              for (let j = 0; j < placedLabelBoxes.length; j++) {
-                  const prevBox = placedLabelBoxes[j];
-                  if (currentBoxX < prevBox.x + prevBox.width &&
-                      currentBoxX + boxWidth > prevBox.x &&
-                      currentBoxY < prevBox.y + prevBox.height + verticalSpacing &&
-                      currentBoxY + boxHeight + verticalSpacing > prevBox.y) {
+                    let currentBoxX;
+                    let textAlign;
+                    let bulletXOffset;
+                    let textXOffset;
 
-                      currentBoxY = prevBox.y + prevBox.height + verticalSpacing;
-                      overlapDetected = true;
-                      break;
-                  }
-              }
-              maxAttempts--;
-          }
-          
-          y_end = currentBoxY + boxHeight / 2;
-          placedLabelBoxes.push({ x: currentBoxX, y: currentBoxY, width: boxWidth, height: boxHeight });
+                    if (Math.cos(angle) > 0) {
+                        textAlign = 'left';
+                        currentBoxX = x_end;
+                        bulletXOffset = boxPadding + 6;
+                        textXOffset = bulletXOffset + 12;
+                    } else {
+                        textAlign = 'right';
+                        currentBoxX = x_end - boxWidth;
+                        bulletXOffset = boxWidth - boxPadding - 6;
+                        textXOffset = bulletXOffset - 12;
+                    }
 
-          ctx.save();
+                    let currentBoxY = y_end - boxHeight / 2;
 
-          // Enhanced leader line with gradient
-          const gradient = ctx.createLinearGradient(x_start, y_start, x_end, y_end);
-          gradient.addColorStop(0, colors[i % colors.length]);
-          gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
-          
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = 2;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(centerX + Math.cos(angle) * (outerRadius + 5), 
-                     centerY + Math.sin(angle) * (outerRadius + 5));
-          ctx.lineTo(x_start, y_start);
-          ctx.lineTo(x_end, y_end);
-          ctx.stroke();
+                    // Enhanced collision detection
+                    let overlapDetected = true;
+                    let maxAttempts = 300;
+                    const verticalSpacing = 15;
 
+                    while (overlapDetected && maxAttempts > 0) {
+                        overlapDetected = false;
+                        for (let j = 0; j < placedLabelBoxes.length; j++) {
+                            const prevBox = placedLabelBoxes[j];
+                            if (currentBoxX < prevBox.x + prevBox.width &&
+                                currentBoxX + boxWidth > prevBox.x &&
+                                currentBoxY < prevBox.y + prevBox.height + verticalSpacing &&
+                                currentBoxY + boxHeight + verticalSpacing > prevBox.y) {
+                                currentBoxY = prevBox.y + prevBox.height + verticalSpacing;
+                                overlapDetected = true;
+                                break;
+                            }
+                        }
+                        maxAttempts--;
+                    }
 
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'; 
-          ctx.shadowColor = 'rgba(0,0,0,0.25)';
-          ctx.shadowBlur = 12;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 6;
-          
-          ctx.beginPath();
-          ctx.roundRect(currentBoxX, currentBoxY, boxWidth, boxHeight, borderRadius);
-          ctx.fill();
-          
-          // Add stronger border for definition
-          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          
-          ctx.shadowColor = 'transparent';
+                    y_end = currentBoxY + boxHeight / 2;
+                    placedLabelBoxes.push({
+                        x: currentBoxX,
+                        y: currentBoxY,
+                        width: boxWidth,
+                        height: boxHeight
+                    });
 
-          // Enhanced colored bullet with glow effect
-          ctx.fillStyle = colors[i % colors.length];
-          ctx.shadowColor = colors[i % colors.length];
-          ctx.shadowBlur = 6;
-          const bulletX = currentBoxX + bulletXOffset;
-          const bulletY = currentBoxY + boxHeight / 2;
-          ctx.beginPath();
-          ctx.arc(bulletX, bulletY, 5, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.shadowColor = 'transparent';
+                    ctx.save();
 
+                    // Enhanced leader line with gradient
+                    const gradient = ctx.createLinearGradient(x_start, y_start, x_end, y_end);
+                    gradient.addColorStop(0, colors[i % colors.length]);
+                    gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
 
-          ctx.textAlign = textAlign;
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + Math.cos(angle) * (outerRadius + 5),
+                              centerY + Math.sin(angle) * (outerRadius + 5));
+                    ctx.lineTo(x_start, y_start);
+                    ctx.lineTo(x_end, y_end);
+                    ctx.stroke();
 
-          labelLines.forEach((lineText, idx) => {
-            let fontColor = '#1a1a1a'; 
-            let fontWeight = 'normal';
-            let fontSize = 15;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 6;
 
-            if (idx === 0) {
-                fontWeight = 'bold';
-                fontSize = 19;
-                fontColor = '#000000';
-            } else {
-                fontWeight = '600';
-                fontSize = 15;
-                fontColor = '#333333';
+                    ctx.beginPath();
+                    ctx.roundRect(currentBoxX, currentBoxY, boxWidth, boxHeight, borderRadius);
+                    ctx.fill();
+
+                    // Add stronger border for definition
+                    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.shadowColor = 'transparent';
+
+                    // Enhanced colored bullet with glow effect
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.shadowColor = colors[i % colors.length];
+                    ctx.shadowBlur = 6;
+                    const bulletX = currentBoxX + bulletXOffset;
+                    const bulletY = currentBoxY + boxHeight / 2;
+                    ctx.beginPath();
+                    ctx.arc(bulletX, bulletY, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.shadowColor = 'transparent';
+
+                    ctx.textAlign = textAlign;
+                    labelLines.forEach((lineText, idx) => {
+                        let fontColor = '#1a1a1a';
+                        let fontWeight = 'normal';
+                        let fontSize = 15;
+
+                        if (idx === 0) {
+                            fontWeight = 'bold';
+                            fontSize = 19;
+                            fontColor = '#000000';
+                        } else {
+                            fontWeight = '600';
+                            fontSize = 15;
+                            fontColor = '#333333';
+                        }
+
+                        ctx.font = `${fontWeight} ${fontSize}px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif`;
+                        ctx.fillStyle = fontColor;
+
+                        let textDrawX;
+                        if (textAlign === 'left') {
+                            textDrawX = currentBoxX + textXOffset;
+                        } else {
+                            textDrawX = currentBoxX + textXOffset;
+                        }
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillText(
+                            lineText,
+                            textDrawX,
+                            currentBoxY + boxPadding + (lineHeight * (idx + 0.7))
+                        );
+                    });
+
+                    ctx.restore();
+                });
             }
+        };
 
-            ctx.font = `${fontWeight} ${fontSize}px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif`;
-            ctx.fillStyle = fontColor;
-
-            let textDrawX;
-            if (textAlign === 'left') {
-                textDrawX = currentBoxX + textXOffset;
-            } else {
-                textDrawX = currentBoxX + textXOffset;
-            }
-            
-            ctx.shadowColor = 'transparent';
-            
-            ctx.fillText(lineText, textDrawX, currentBoxY + boxPadding + (lineHeight * (idx + 0.7)));
-          });
-
-          ctx.restore();
+        const ctx = document.getElementById('branchPieChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: branchData,
+                    backgroundColor: colors,
+                    borderColor: '#000',
+                    borderWidth: 2,
+                    hoverOffset: 20,
+                    hoverBorderWidth: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 100,
+                        bottom: 120,
+                        left: 180,
+                        right: 180
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const branchName = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                                return [`${branchName}: ${value} students (${percentage}%)`];
+                            }
+                        },
+                        backgroundColor: 'rgba(26,32,44,0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        cornerRadius: 12,
+                        bodyFont: {
+                            size: 15,
+                            weight: '500'
+                        },
+                        titleFont: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        padding: 12
+                    },
+                    datalabels: {
+                        color: function(context) {
+                            const bgColor = colors[context.dataIndex % colors.length];
+                            return '#fff';
+                        },
+                        formatter: (value, context) => {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                            return `${value}\n(${percentage}%)`;
+                        },
+                        font: {
+                            weight: 'bold',
+                            size: 20,
+                            family: 'Arial'
+                        },
+                        display: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = (context.parsed / total) * 100;
+                            return percentage > 3;
+                        },
+                        align: 'center',
+                        padding: 8,
+                        textStrokeColor: 'rgba(0,0,0,0.8)',
+                        textStrokeWidth: 4
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 2000,
+                    easing: 'easeOutCubic'
+                },
+                cutout: '45%',
+                radius: '80%'
+            },
+            plugins: [ChartDataLabels, RadialLabelsPlugin]
         });
-      }
-    };
 
-    const ctx = document.getElementById('branchPieChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: chartLabels,
-        datasets: [{
-          data: branchData,
-          backgroundColor: colors,
-          borderColor: '#000',
-          borderWidth: 2,
-          hoverOffset: 20,
-          hoverBorderWidth: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            top: 100,
-            bottom: 120,
-            left: 180,
-            right: 180
-          }
-        },
-        plugins: {
-          legend: {
-            display: false
-          },
-          title: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const branchName = context.label || '';
-                const value = context.parsed;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
-                return [`${branchName}: ${value} students (${percentage}%)`];
-              }
-            },
-            backgroundColor: 'rgba(26,32,44,0.95)',
-            titleColor: '#ffffff',
-            bodyColor: '#ffffff',
-            borderColor: '#ffffff',
-            borderWidth: 2,
-            cornerRadius: 12,
-            bodyFont: {
-              size: 15,
-              weight: '500'
-            },
-            titleFont: {
-              size: 16,
-              weight: 'bold'
-            },
-            padding: 12
-          },
-          datalabels: {
-            color: function(context) {
-              const bgColor = colors[context.dataIndex % colors.length];
-              return '#fff'; 
-            },
-            formatter: (value, context) => {
-              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
-              return `${value}\n(${percentage}%)`;
-            },
-            font: {
-              weight: 'bold',
-              size: 20,
-              family: 'Arial'
-            },
-            display: function(context) {
-              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = (context.parsed / total) * 100;
-              return percentage > 3;
-            },
-            display:true,
-            align: 'center',
-            padding: 8,
-            textStrokeColor: 'rgba(0,0,0,0.8)',
-            textStrokeWidth: 4
-          }
-        },
-        animation: {
-          animateRotate: true,
-          animateScale: true,
-          duration: 2000,
-          easing: 'easeOutCubic'
-        },
-        cutout: '45%',
-        radius: '80%'
-      },
-      plugins: [ChartDataLabels, RadialLabelsPlugin]
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-      const modal = document.getElementById('announcement-modal');
-      const btn = document.querySelector('.add-announcement-btn');
-      const closeBtn = document.querySelector('.close-btn');
-      const form = document.getElementById('add-announcement-form');
+        // Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('announcement-modal');
+            const btn = document.querySelector('.add-announcement-btn');
+            const closeBtn = document.querySelector('.close-btn');
+            const form = document.getElementById('add-announcement-form');
 
-      btn.addEventListener('click', () => modal.style.display = 'block');
-      closeBtn.addEventListener('click', () => modal.style.display = 'none');
-      window.addEventListener('click', e => { if (e.target == modal) modal.style.display = 'none'; });
+            if (btn) {
+                btn.addEventListener('click', () => modal.style.display = 'block');
+            }
 
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(form);
-        fetch("{% url 'add_announcement' %}", {
-          method: "POST",
-          headers: {'X-CSRFToken': '{{ csrf_token }}' },
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert('Failed to add announcement.');
-          }
-        })
-        .catch(() => alert('Server error.'));
-      });
-    });
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => modal.style.display = 'none');
+            }
 
+            window.addEventListener('click', e => {
+                if (e.target == modal) modal.style.display = 'none';
+            });
+
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    fetch("{% url 'add_announcement' %}", {
+                        method: "POST",
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to add announcement.');
+                        }
+                    })
+                    .catch(() => alert('Server error.'));
+                });
+            }
+        });
+
+        // Header scroll effect
+        document.addEventListener("scroll", function() {
+            const header = document.querySelector(".top-navigation-header");
+            if (window.scrollY > 100) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        });
+
+        // Company Search and Upload Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const companySelect = document.getElementById('companySelect');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (companySelect) {
+                // Handle company selection
+                companySelect.addEventListener('change', function() {
+                    const selectedCompany = this.value;
+                    if (selectedCompany) {
+                        console.log('Selected company:', selectedCompany);
+                        // Enable upload button when company is selected
+                        if (uploadBtn) {
+                            uploadBtn.disabled = false;
+                            uploadBtn.style.opacity = '1';
+                        }
+                    } else {
+                        // Disable upload button when no company is selected
+                        if (uploadBtn) {
+                            uploadBtn.disabled = true;
+                            uploadBtn.style.opacity = '0.6';
+                        }
+                    }
+                });
+            }
+
+            if (uploadBtn) {
+                // Handle upload button click
+                uploadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const selectedCompany = companySelect ? companySelect.value : '';
+
+                    if (!selectedCompany) {
+                        alert('Please select a company first.');
+                        return;
+                    }
+
+                    // Add your upload logic here
+                    console.log('Uploading company:', selectedCompany);
+
+                    // Example: Show loading state
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                    this.disabled = true;
+
+                    // Simulate upload process (replace with actual upload logic)
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        alert('Company uploaded successfully!');
+                    }, 2000);
+                });
+
+                // Initially disable upload button
+                uploadBtn.disabled = true;
+                uploadBtn.style.opacity = '0.6';
+            }
+        });
     </script>
-  {% endblock content %}
-  {% block script %}{% endblock script %}
 </body>
 </html>
