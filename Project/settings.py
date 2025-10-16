@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from supabase import create_client
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#=yq#fj677ee7t(&hw#mk@0gm+i)3pq0zg3w*d=nx9)^qgn2#o"
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,14 +81,13 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.bzdozjdbyovuahcgvyhb',
-        'PASSWORD': 'NIT@ndhrapradesh',
-        'HOST': 'aws-0-ap-south-1.pooler.supabase.com',
-        'PORT':'5432'
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': config('POSTGRES_HOST'),
+        'PORT': config('POSTGRES_PORT', cast=int),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -131,14 +132,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Example SMTP settings for Gmail (adjust to your provider)
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'temporaryu223@gmail.com'
-EMAIL_HOST_PASSWORD = 'sroq afba pxll ilxv'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-SUPABASE_URL = 'https://bzdozjdbyovuahcgvyhb.supabase.co'
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZG96amRieW92dWFoY2d2eWhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzI0MjUwMSwiZXhwIjoyMDYyODE4NTAxfQ.ujblBvG206S4Xqure2ClCPZPJomHv9OUOCpEtYp-70E"
+SUPABASE_URL = config('SUPABASE_URL')
+SUPABASE_KEY = config('SUPABASE_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)

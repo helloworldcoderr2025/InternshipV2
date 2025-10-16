@@ -552,33 +552,35 @@
             <tr>
               <th scope="row">1</th>
               <td>{{s.companyName}}</td>
+              <!-- prettier-ignore -->
               <td>
                 {% if s.level > 1 %}✔️{% elif s.level == 1 %}🟢{% else %}❌
                 {%endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
                 {% if s.level > 2 %}✔️{% elif s.level == 2 %}🟢{% else %}❌
                 {%endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
-                {% if s.level > 3 %}✔️{% elif s.level == 3 %}🟢{% else %}❌
-                {%endif %}
+                {% if s.level > 3 %}✔️{% elif s.level == 3 %}🟢{% elif s.status == "Rejected" %}❌{% else %}🟠{% endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
-                {% if s.level > 4 %}✔️{% elif s.level == 4 %}🟢{% else %}❌
-                {%endif %}
+                {% if s.level > 4 %}✔️{% elif s.level == 4 %}🟢{% elif s.status == "Rejected" %}❌ {% else %}🟠 {%endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
-                {% if s.level > 5 %}✔️{% elif s.level == 5 %}🟢{% else %}❌
-                {%endif %}
+                {% if s.level > 5 %}✔️{% elif s.level == 5 %}🟢{% elif s.status == "Rejected" %}❌ {% else %}🟠 {%endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
-                {% if s.level > 6 %}✔️{% elif s.level == 6 %}🟢{% else %}❌
-                {%endif %}
+                {% if s.level > 6 %}✔️{% elif s.level == 6 %}🟢{% elif s.status == "Rejected" %}❌ {% else %}🟠 {%endif %}
               </td>
+              <!-- prettier-ignore -->
               <td>
-                {% if s.level > 7 %}✔️{% elif s.level == 7 %}🟢{% else %}❌
-                {%endif %}
+                {% if s.level > 7 %}✔️{% elif s.level == 7 %}🟢{% elif s.status == "Rejected" %}❌ {% else %}🟠 {%endif %}
               </td>
               <td>{{s.status}}</td>
             </tr>

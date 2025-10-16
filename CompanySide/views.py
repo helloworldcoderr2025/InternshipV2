@@ -377,8 +377,6 @@ def send_email_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-
-
 def company_data_portal(request):
     filter_type = request.GET.getlist('type_of_company')
     filter_profile = request.GET.getlist('job_profile')
@@ -390,6 +388,7 @@ def company_data_portal(request):
 
     qs = CompanyJobprofiles.objects.select_related('company')
 
+    # Apply filters
     if filter_name:
         qs = qs.filter(company__name__in=filter_name)
     if filter_type:
@@ -399,8 +398,9 @@ def company_data_portal(request):
     if filter_offer:
         qs = qs.filter(job_offer__in=filter_offer)
 
+    # Sorting
     sort_map = {
-        'company__name': 'company__name',
+        'name': 'company__name',
         'type_of_company': 'type_of_company',
         'job_profile': 'job_profile',
         'job_offer': 'job_offer',
@@ -414,10 +414,30 @@ def company_data_portal(request):
     paginator = Paginator(qs, 10)
     page_obj = paginator.get_page(page_number)
 
+    # Populate dropdown choices
+    filter_names = Company.objects.values_list('name', flat=True).distinct()
+    filter_types = CompanyJobprofiles.objects.values_list('type_of_company', flat=True).distinct()
+    filter_profiles = CompanyJobprofiles.objects.values_list('job_profile', flat=True).distinct()
+    filter_offers = CompanyJobprofiles.objects.values_list('job_offer', flat=True).distinct()
     context = {
         'page_obj': page_obj,
+        'filter_names': filter_names,
+        'filter_types': filter_types,
+        'filter_profiles': filter_profiles,
+        'filter_offers': filter_offers,
+        'filter_type': filter_type,
+        'filter_profile': filter_profile,
+        'filter_offer': filter_offer,
+        'filter_name': filter_name,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'selected_core': request.GET.getlist('core_branch'),
+        'selected_non_core': request.GET.getlist('non_core_branch'),
+        'min_package': request.GET.get('min_package', ''),
+        'max_package': request.GET.get('max_package', ''),
     }
     return render(request, 'company_data_portal.html', context)
+
 
 def company_invitations_portal(request):
     invited_status = request.GET.get('invited_status', '')

@@ -1088,9 +1088,10 @@ def profile(request):
     send=[]
     roll=request.user.username.split("@")[0]
     student=Student.objects.get(roll_no=roll)
+    print(student.registered)
     if student.registered=="Yes":
                 try: 
-                    register=Registrations.objects.filter(rollnumber__iexact=roll)
+                    register=Registrations.objects.filter(rollnumber=roll)
                     for reg in register:
                         company=Company.objects.get(id=reg.company_id)
                         ob={"companyName":company.name,"level":levelId[reg.level],"status":reg.status}
@@ -1099,6 +1100,7 @@ def profile(request):
                     print(e)
     # docs=Documents.objects.get(rollno=roll)
     # print(docs.results)
+    print(send)
     return render(request,"profile.html",{'student':student,'send':send})
 
 def tplogin(request):
@@ -1432,7 +1434,6 @@ Training and Placement Cell
                             reg.status = status
                             reg.level = level
                             reg.save()
-
                             stu = Student.objects.get(roll_no=reg.rollnumber)
                             recipient_email = "dummymailforme4321@gmail.com"
                             subject = 'Placement Status Updated'
@@ -1472,7 +1473,10 @@ Training and Placement Cell
         elif 'status' not in request.POST:
             register = request.POST['register']
             student = Registrations.objects.get(registered_id=register)
-            stu = Student.objects.get(roll_no=student.rollnumber)
+            stu=student.rollnumber
+            # print("type",type(rol))
+            # stu = Student.objects.get(roll_no=student.rollnumber)
+            
             form2 = "yes"
             send = displayStatus(request, register, stu.roll_no)
             return render(request, "update_student_placement.html", {'student': student, 'form2': form2, 'send': send, 'stu': stu})
@@ -1483,7 +1487,8 @@ Training and Placement Cell
             status = request.POST['status']
             level = request.POST['level']
             registerStu = Registrations.objects.get(registered_id=register)
-            student = Student.objects.get(roll_no=registerStu.rollnumber)
+            # student = Student.objects.get(roll_no=registerStu.rollnumber)
+            student=registerStu.rollnumber
             registerStu.status = status
             registerStu.level = level
             registerStu.save()
